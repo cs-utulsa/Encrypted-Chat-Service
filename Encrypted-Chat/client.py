@@ -3,14 +3,18 @@ class client():
     def __init__(self, host, port):
         self.HOST = host
         self.PORT = port
-
+    
     def connect(self):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as guest:
-            guest.connect((self.HOST, self.PORT))
-            if(guest.connect):
-                return "Connected"
-            else:
-                return "null"
+        count = 1
+        myClient = socket.socket(socket.AF_INET, socket.SOCK_STREAM)        
+        myClient.connect((self.HOST, self.PORT))
+        if(myClient.connect == True):
+            return myClient
+        elif(myClient.connect == False and count < 6):
+            count = count + 1
+            self.connect()
+        else:
+            return "null"
         
     def getPort(self):
         return self.PORT
@@ -24,5 +28,12 @@ class client():
     def setIP(self, IP):
         self.HOST = IP
 
-    def main():
-        print("hello")
+def main():
+    print("kaljsdf;lkj")
+    today = client("127.232.232.11", 1232)
+    if (today.connect == True):
+        print("We are connected")
+    else:
+        print("We are")
+
+main()
