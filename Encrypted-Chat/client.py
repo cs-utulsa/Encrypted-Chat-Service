@@ -30,17 +30,3 @@ class client():
 
     def setIP(self, IP):
         self.HOST = IP
-
-def main():
-    print("Testing for Getters and Setters")
-    today = client("googsadfle.com", 80)
-    print(today.getIP())
-    print(today.getPort())
-    today.setIP("googsadfle.com")
-    print(today.getIP())
-    today.setPort(80)
-    print(today.getPort())
-    today.connect()
-    if(today.connect()=="null"):
-        print("I have null")
-main()
