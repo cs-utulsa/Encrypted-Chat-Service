@@ -3,10 +3,11 @@ class client():
     def __init__(self, host, port):
         self.HOST = host
         self.PORT = port
+
     def connect(self):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as guest:
             guest.connect((self.HOST, self.PORT))
-            if(guest.connected):
+            if(guest.connect):
                 return "Connected"
             else:
                 return "null"
