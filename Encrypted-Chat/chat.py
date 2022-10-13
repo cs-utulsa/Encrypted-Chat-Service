@@ -1,9 +1,14 @@
 import threading
-#from Client import EChatClient
-#from Server import EChatServer
+from client import EChatClient
+from ChatServer import EChatServer
 from message import Message
+import datetime
 
 class InputHandler():
+    """
+    Do not modify this class it is used to poll user input 
+    because python does not have functionality to do that.
+    """
     def __init__(self):
         self.lock = threading.Lock()
         self.value = None
@@ -48,47 +53,70 @@ class Cli():
     def readInput(self, input_handler: InputHandler):
         usr_inp = ''
         while usr_inp != '!exit' or self._user_input.run != True:
-            usr_inp = input('Input> ')
+            usr_inp = input('')
             input_handler.setMessage(usr_inp)
         self._user_input.run = False
 
     def client_mode(self):
-        target = self._args.target[0]
+        """
+        This function implements the client functionality of the program. 
+        A new thread is started to handle local user input.
+        The client will then reach out to the server and establish a connection
+        before sending and receiving data.
+        """
+        target = self._args.ip[0]
         port = self._args.port[0]
 
         self._input_thread = threading.Thread(target=self.readInput, args=(self._user_input,))
         self._input_thread.start()
-        #client = EChatClient()
-        print(self._args)
-        #client.connect(target, port)
+
+        client = EChatClient(target, port)
+        client.setIP(target)
+        client.setPort(port)
+        if not client.connect():
+            return False
         input_message = ''
+
         while self._user_input.run:
             input_message = self._user_input.getMessage()
             if input_message is not None:
-                #client.sendMsg(Message(input_message))
-                print(input_message)
-            #recv_msg = client.readMsg()
-            #if recv_msg is not None:
-            #    print(recv_msg.getContent())
+                d = datetime.datetime.now()
+                print ("\033[A                             \033[A")
+                print(f'[{d}] CLIENT> {input_message}')
+                client.sendMsg(Message(input_message))
+            recv = client.readAvailable()
+            if recv != None:
+                d = datetime.datetime.now()
+                print(f'[{d}] SERVER> {recv.getContent()}')
         self._input_thread.join()
+        client.close()
         return True
 
 
     def server_mode(self):
-        target = self._args.local_ip[0]
+        target = self._args.ip[0]
         port = self._args.port[0]
-        #client = EChatClient()
-        print(self._args)
-        #server.bind(target, port)
-        
+
+        self._input_thread = threading.Thread(target=self.readInput, args=(self._user_input,))
+        self._input_thread.start()
+
+        server = EChatServer(port)
+        server.connect()
         input_message = ''
+        msg = Message(input_message)
+        print(f'[+] Successfully bound to {target}:{port}')
+        print('[+] Listening for clients...')
         while self._user_input.run:
             input_message = self._user_input.getMessage()
             if input_message is not None:
-                #client.sendMsg(Message(input_message))
-                print(input_message)
-            #recv_msg = client.readMsg()
-            #if recv_msg is not None:
-            #    print(recv_msg.getContent())
+                d = datetime.datetime.now()
+                print ("\033[A                             \033[A")
+                print(f'[{d}] SERVER> {input_message}')
+                server.sendMsg(Message(input_message))
+            recv = server.readAvailable()
+            if recv != None:
+                d = datetime.datetime.now()
+                print(f'[{d}] CLIENT> {recv.getContent()}')
+        server.close()
         self._input_thread.join()
         return True

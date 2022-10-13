@@ -5,7 +5,7 @@ class Message:
     This class outlines the messaging and control protocol for the chat client.
     The message has two sections defined as HEADERS and CONTENT.
 
-    The header section contains parameters useful for messahe processing in the future.
+    The header section contains parameters useful for message processing in the future.
     """
     
     _content = None
@@ -21,7 +21,9 @@ class Message:
         self._content = data['content']
         self._headers = data['headers']
 
-
+    def setContent(self, msg):
+        self._content = msg
+        
     def getHeaders(self):
         return self._headers
 
