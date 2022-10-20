@@ -16,10 +16,14 @@ class EChatServer:
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # TCP Socket Var
         self.server.settimeout(30) # sets time socket will wait for a connection; 30s
         self.sockets = []
-    # NULL parms
-    # binds the socket from constructor to given port number; returns connection and address
-    # Throws err if incorrect IP:Port is given, or timesout; returns null
+
     def connect(self):
+        """
+        Binds the socket from constructor to given port number, waits for a connection, then adds socket to an array to
+        prevent blocking.
+
+        :return: None if err occurs
+        """
         try:
             self.server.bind((self.DEFAULT_IP, self.port_number)) # locks server socket to IP:PORT
             self.server.listen(1) # waits for connection
@@ -28,20 +32,40 @@ class EChatServer:
             print("ERR: no connection made")
             return None
 
-    # Returns the socket's portnumber
     def get_port(self):
+        """
+        Gets the server's port number
+
+        :return: int port_number
+        """
         return self.server.getsockname() 
-        
-    # Sets port number given in constructor to new port number
-    def set_port(self, port_num): 
+
+    def set_port(self, port_num):
+        """
+        Sets server port number to the new port number
+
+        :param port_num: new port number
+        :return: None
+        """
         self.port_number = port_num
 
     def sendMsg(self, message: Message):
+        """
+        Sends a string to ...
+
+        :param message: ASCII string to send
+        :return:
+        """
         for socket in self.sockets:
             if socket != self.server:
                 socket.sendall(message.getData().encode('utf8'))
 
     def readAvailable(self):
+        """
+        Reads messages from sockets ...
+
+        :return: String msg received
+        """
         read_sockets, write_sockets, error_sockets = select.select(self.sockets, [], [], 0)
         for socket in read_sockets:
             if socket == self.server:
@@ -59,6 +83,10 @@ class EChatServer:
         return None
         
     def close(self):
+        """
+        Closes all sockets in self.sockets array
+        :return: None
+        """
         for sock in self.sockets:
             sock.close()
             
