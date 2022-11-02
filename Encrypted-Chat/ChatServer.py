@@ -6,7 +6,7 @@ from message import Message
 from rsahandshake import RSAHandshake
 
 class EChatServer:
-    def __init__(self, port_number):
+    def __init__(self, port_number, ip_address="0.0.0.0"):
         ################################################
         # Parameters
         ################################################
@@ -14,7 +14,7 @@ class EChatServer:
         ################################################
         # Variables
         ################################################
-        self.DEFAULT_IP = "localhost"
+        self.IP_ADDRESS = ip_address
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # TCP Socket Var
         self.server.settimeout(30) # sets time socket will wait for a connection; 30s
         self.sockets = []
@@ -28,7 +28,7 @@ class EChatServer:
         :return: None if err occurs
         """
         try:
-            self.server.bind((self.DEFAULT_IP, self.port_number)) # locks server socket to IP:PORT
+            self.server.bind((self.IP_ADDRESS, self.port_number)) # locks server socket to IP:PORT
             self.server.listen(1) # waits for connection
             self.sockets.append(self.server)
         except:
