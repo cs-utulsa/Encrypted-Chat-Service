@@ -104,7 +104,7 @@ class Chat():
         self._input_thread = threading.Thread(target=self.readInput, args=(self._user_input,))
         self._input_thread.start()
 
-        server = EChatServer(port)
+        server = EChatServer(port, ip_address=target)
         server.connect()
         input_message = ''
         msg = Message(input_message)
