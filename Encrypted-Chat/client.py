@@ -3,6 +3,12 @@ import select
 from message import Message
 
 class EChatClient():
+    """
+    Constructor for Encrypted Chat Client server.
+
+    :param host: Host's IP addr/hostname to use for socket
+    :param port: Host's IP port number for socket
+    """
     HOST = ""
     PORT = 0
     outputs = []
@@ -15,8 +21,10 @@ class EChatClient():
     
     def connect(self):
         """
+        Tries to connect and bind socket to provided HOST and PORT address given in constructor. Will loop six times
+        trying to form a connection if an error occurs.
 
-        :return:
+        :return: true if a connection is made; otherwise false
         """
         count = 1
         while(count < 6):
@@ -33,57 +41,61 @@ class EChatClient():
     
     def sendMsg(self, message: Message):
         """
+        Sends the message given as a parameter through `client_socket`.
 
-        :param message:
-        :return:
+        :param message: full message constructed from `message.py` class
         """
         self.client_socket.sendall(message.getData().encode('utf8'))
 
     def readAvailable(self):
         """
+        If there is an available socket in the list `read_sockets`, read the message in and return the message.
 
-        :return:
+        :return: if there is a message, returns message; otherwise returns None
         """
-        read_sockets, write_sockets, error_sockets = select.select([self.client_socket], [], [], 0)
-        for sock in read_sockets:
-            msg = Message()
-            msg.parseMsg(sock.recv(1024).decode('utf8'))
-            return msg
-        return None
+        try:
+            read_sockets, write_sockets, error_sockets = select.select([self.client_socket], [], [], 0)
+            for sock in read_sockets:
+                msg = Message()
+                msg.parseMsg(sock.recv(1024).decode('utf8'))
+                return msg
+        except:
+            return None
 
     def close(self):
         """
-
-        :return:
+        Gracefully closes `client_socket` and ends program.
         """
         self.client_socket.close()
 
     def getPort(self):
         """
+        Returns PORT field of `client_socket`
 
-        :return:
+        :return: int PORT
         """
         return self.PORT
 
     def setPort(self, port):
         """
+        Sets PORT
 
-        :param port:
-        :return:
+        :param port: int port to set `client_socket` to
         """
         self.PORT = port
 
     def getIP(self):
         """
+        Returns IP address/hostname of `client_socket`
 
-        :return:
+        :return: address/hostname of `client_socket`
         """
         return self.HOST
 
     def setIP(self, IP):
         """
+        Sets a new IP address/hostname of `client_socket`
 
-        :param IP:
-        :return:
+        :param IP: address/hostname of `client_socket`
         """
         self.HOST = IP
