@@ -87,3 +87,18 @@ class EChatClient():
         :return:
         """
         self.HOST = IP
+if __name__ == "__main__":
+    PORT = 120
+
+    ## Constructor and connect Test
+    client = EChatClient(PORT)
+    conn, addr = client.connect()
+
+    ## receiving data from made connection & send back in uppercase
+    data = conn.recv(1024).strip()
+    print("{} wrote: ".format(addr))
+    print(data)
+    conn.sendall(data.upper())
+
+    ## get_port Test
+    print("server on port: {}".format(server.get_port())) 
