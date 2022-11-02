@@ -36,8 +36,8 @@ class App(tk.Tk):
         #Defining some app information
         self.title(APPNAME)
         # self.geometry('960x540')
-        pic = tk.PhotoImage(file=ASSETDIR+'\\icon.png')
-        self.iconphoto(False, pic)
+        #pic = tk.PhotoImage(file=ASSETDIR+'\\icon.png')
+        #self.iconphoto(False, pic)
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.running = True
 

@@ -1,7 +1,7 @@
 from curses import keyname
 import secrets
 
-class handshake:  
+class Handshake:  
    key = None  
    encryptCurve = 'NIST P-256'  
    gen = None  
@@ -14,7 +14,7 @@ class handshake:
 
    #handshake method. Takes a socket which is connected and a boolean. True = sever calling,  
    #false = client calling. returns the socket after finishing the handshake.  
-   def handshake(self, socket, boolean):  
+   def handshake(self, socket, isServer):  
         pass
 
    #ecc method. Takes a socket which is connected, the ecc curve to be used and the secret int that was generated in handshake.   

@@ -1,6 +1,8 @@
 import socket
 import select
+from encrypt import ECEncrypt
 from message import Message
+from rsahandshake import RSAHandshake
 
 class EChatClient():
     HOST = ""
@@ -8,7 +10,7 @@ class EChatClient():
     outputs = []
     message_queue = []
     client_socket = None
-
+    encrypt_pair = None
     def __init__(self, host, port):
         self.HOST = host
         self.PORT = port
@@ -23,10 +25,13 @@ class EChatClient():
             try:
                 myClient = socket.socket(socket.AF_INET, socket.SOCK_STREAM)        
                 myClient.connect((self.HOST, self.PORT))
-                myClient.setblocking(0)
                 self.client_socket = myClient
+                hs = RSAHandshake()
+                ekey, dkey = hs.handshake(myClient)
+                self.encrypt_pair = ECEncrypt(ekey, dkey)
                 return True
-            except:
+            except Exception as e:
+                print(e)
                 count=count+1
                 continue
         return False
@@ -37,7 +42,7 @@ class EChatClient():
         :param message:
         :return:
         """
-        self.client_socket.sendall(message.getData().encode('utf8'))
+        self.client_socket.sendall(self.encrypt_pair.encrypt(message.getData().encode('utf8')))
 
     def readAvailable(self):
         """

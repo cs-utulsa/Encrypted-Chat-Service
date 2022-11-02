@@ -1,6 +1,9 @@
 import socket
 import select
+import rsa
+from encrypt import ECEncrypt
 from message import Message
+from rsahandshake import RSAHandshake
 
 class EChatServer:
     def __init__(self, port_number):
@@ -8,7 +11,6 @@ class EChatServer:
         # Parameters
         ################################################
         self.port_number = port_number
-
         ################################################
         # Variables
         ################################################
@@ -16,6 +18,7 @@ class EChatServer:
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # TCP Socket Var
         self.server.settimeout(30) # sets time socket will wait for a connection; 30s
         self.sockets = []
+        self.crypt_pair = {}
 
     def connect(self):
         """
@@ -58,7 +61,8 @@ class EChatServer:
         """
         for socket in self.sockets:
             if socket != self.server:
-                socket.sendall(message.getData().encode('utf8'))
+                em = self.crypt_pair[socket]
+                socket.sendall(em.encrypt(message.getData().encode('utf8')))
 
     def readAvailable(self):
         """
@@ -70,11 +74,19 @@ class EChatServer:
         for socket in read_sockets:
             if socket == self.server:
                 print("Connected to client")
-                self.sockets.append(self.server.accept()[0])
+                csock = self.server.accept()[0]
+                self.sockets.append(csock)
+                hs = RSAHandshake()
+                ekey, dkey = hs.handshake(csock=csock, srv=True)
+                enc = ECEncrypt(ekey,dkey)
+                self.crypt_pair[csock] = enc
             else:
                 try:
                     msg = Message()
-                    msg.parseMsg(socket.recv(1024).decode('utf8'))
+                    em = self.crypt_pair[socket]
+                    data = em.decrypt(socket.recv(1024).decode('utf8'))
+                    print(f'DECRYPT: {data}')
+                    msg.parseMsg(data)
                     return msg
                 except:
                     print("Client Disconnected")

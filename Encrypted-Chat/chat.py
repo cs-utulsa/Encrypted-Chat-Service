@@ -3,7 +3,7 @@ from client import EChatClient
 from ChatServer import EChatServer
 from message import Message
 import datetime
-
+from App import App
 class InputHandler():
     """
     Do not modify this class it is used to poll user input 
@@ -37,9 +37,9 @@ class InputHandler():
             self.lock.release()
 
 
-class Cli():
+class Chat():
     """
-    The Cli class is used for parsing the command arguments and handling
+    The Chat class is used for parsing the command arguments and handling
     user input to be passed to the host or client objects.
     """
     _args = None
@@ -75,6 +75,9 @@ class Cli():
         client.setPort(port)
         if not client.connect():
             return False
+
+        #if cli:
+        # START IN CLI MODE
         input_message = ''
 
         while self._user_input.run:
@@ -91,6 +94,10 @@ class Cli():
         self._input_thread.join()
         client.close()
         return True
+        #else:
+            # START IN APP MODE
+        #    app = App()
+        #    app.mainloop()
 
 
     def server_mode(self):

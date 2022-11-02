@@ -1,6 +1,6 @@
 import argparse
-from chat import Cli
-
+from chat import Chat
+from App import App
 __BANNER__ = """Encrypted Chat v1.0"""
 
 def main():
@@ -17,19 +17,23 @@ def main():
     host.add_argument('--ip', '-i', type=str, nargs=1, help='Designates local bind ip address.')
     host.add_argument('--port', '-p', type=int, nargs=1, help='Designates server local bind port.')
     args = parser.parse_args()
-    _cli = Cli(args)
+    chat = Chat(args)
 
     if args.mode == 'client':
         print("[+] Attempting connection in client mode.")
-        if _cli.client_mode() == False:
+        if chat.client_mode() == False:
             print("[-] Connection failed, defaulting to server mode.")
-            _cli.server_mode()
+            chat.server_mode()
     if args.mode == 'host':
-        # TODO Server mode.
-        _cli.server_mode()
+        chat.server_mode()
     if args.mode == 'gui':
-        # TODO GUI mode.
         print("GUI Mode")
+        app = App()
+        app.mainloop()
+    else:
+        print("GUI Mode")
+        app = App()
+        app.mainloop()
 
 
 if __name__ == '__main__':
