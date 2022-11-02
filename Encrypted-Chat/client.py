@@ -52,7 +52,13 @@ class EChatClient():
         read_sockets, write_sockets, error_sockets = select.select([self.client_socket], [], [], 0)
         for sock in read_sockets:
             msg = Message()
-            msg.parseMsg(sock.recv(1024).decode('utf8'))
+            edata = sock.recv(1024)
+            try:
+                data = self.encrypt_pair.decrypt(edata)
+                print(f'DECRYPT: {data}')
+                msg.parseMsg(data)
+            except Exception as e:
+                print(e)
             return msg
         return None
 

@@ -17,7 +17,11 @@ def main():
     host.add_argument('--ip', '-i', type=str, nargs=1, help='Designates local bind ip address.')
     host.add_argument('--port', '-p', type=int, nargs=1, help='Designates server local bind port.')
     args = parser.parse_args()
-    chat = Chat(args)
+
+    # TODO Find a better way to do this
+    username = input("Username: ")
+    chat = Chat(args, username)
+
 
     if args.mode == 'client':
         print("[+] Attempting connection in client mode.")
@@ -32,7 +36,7 @@ def main():
         app.mainloop()
     else:
         print("GUI Mode")
-        app = App()
+        app = App(username)
         app.mainloop()
 
 

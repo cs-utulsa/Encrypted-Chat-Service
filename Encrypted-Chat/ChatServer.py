@@ -52,7 +52,7 @@ class EChatServer:
         """
         self.port_number = port_num
 
-    def sendMsg(self, message: Message):
+    def sendMsg(self, message: Message, exclusion=None):
         """
         Sends a string to ...
 
@@ -60,7 +60,7 @@ class EChatServer:
         :return:
         """
         for socket in self.sockets:
-            if socket != self.server:
+            if socket != self.server and socket != exclusion:
                 em = self.crypt_pair[socket]
                 socket.sendall(em.encrypt(message.getData().encode('utf8')))
 
@@ -84,11 +84,13 @@ class EChatServer:
                 try:
                     msg = Message()
                     em = self.crypt_pair[socket]
-                    data = em.decrypt(socket.recv(1024).decode('utf8'))
+                    data = em.decrypt(socket.recv(1024))
                     print(f'DECRYPT: {data}')
                     msg.parseMsg(data)
+                    self.sendMsg(msg, exclusion=socket)
                     return msg
-                except:
+                except Exception as e:
+                    print(e)
                     print("Client Disconnected")
                     self.sockets.remove(socket)
                     socket.close()

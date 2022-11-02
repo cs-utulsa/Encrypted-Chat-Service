@@ -9,7 +9,7 @@ class Message:
     """
     
     _content = None
-    _headers = {'user': 'anonymous', 'message_type': 'message'}
+    _headers = {'username': 'anonymous', 'message_type': 'message'}
 
 
     def __init__(self, content=None):
@@ -26,6 +26,9 @@ class Message:
         
     def getHeaders(self):
         return self._headers
+
+    def getHeader(self, header):
+        return self._headers[header]
 
 
     def getContent(self):

@@ -44,11 +44,12 @@ class Chat():
     """
     _args = None
     _input_thread = None
+    username = "TEST_USR"
 
-
-    def __init__(self, args: list):
+    def __init__(self, args: list, username:str):
         self._args = args
         self._user_input = InputHandler()
+        self.username = username
 
     def readInput(self, input_handler: InputHandler):
         usr_inp = ''
@@ -76,8 +77,6 @@ class Chat():
         if not client.connect():
             return False
 
-        #if cli:
-        # START IN CLI MODE
         input_message = ''
 
         while self._user_input.run:
@@ -85,19 +84,17 @@ class Chat():
             if input_message is not None:
                 d = datetime.datetime.now()
                 print ("\033[A                             \033[A")
-                print(f'[{d}] CLIENT> {input_message}')
-                client.sendMsg(Message(input_message))
+                print(f'[{d}] {self._username}> {input_message}')
+                msg = Message(input_message)
+                msg.setHeader('username', self._username)
+                client.sendMsg(msg)
             recv = client.readAvailable()
             if recv != None:
                 d = datetime.datetime.now()
-                print(f'[{d}] SERVER> {recv.getContent()}')
+                print(f'[{d}] {recv.getHeader("username")}> {recv.getContent()}')
         self._input_thread.join()
         client.close()
         return True
-        #else:
-            # START IN APP MODE
-        #    app = App()
-        #    app.mainloop()
 
 
     def server_mode(self):
@@ -118,12 +115,14 @@ class Chat():
             if input_message is not None:
                 d = datetime.datetime.now()
                 print ("\033[A                             \033[A")
-                print(f'[{d}] SERVER> {input_message}')
-                server.sendMsg(Message(input_message))
+                print(f'[{d}] {self._username}> {input_message}')
+                msg = Message(input_message)
+                msg.setHeader('username', self._username)
+                server.sendMsg(msg)
             recv = server.readAvailable()
             if recv != None:
                 d = datetime.datetime.now()
-                print(f'[{d}] CLIENT> {recv.getContent()}')
+                print(f'[{d}] {recv.getHeader("username")}> {recv.getContent()}')
         server.close()
         self._input_thread.join()
         return True

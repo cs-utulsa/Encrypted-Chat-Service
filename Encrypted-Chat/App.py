@@ -31,8 +31,11 @@ CLIENT = 1
 #The entire App class
 class App(tk.Tk):
 
-    def __init__(self):
+    def __init__(self, username):
         super().__init__()
+
+        self.username = username
+
         #Defining some app information
         self.title(APPNAME)
         # self.geometry('960x540')
@@ -84,15 +87,17 @@ class App(tk.Tk):
             if recv != None:
                 msg = recv.getContent()
                 d = datetime.datetime.now()
-                self.msg_list.insert(tk.END, f'[{d}] NOT ME> {msg}')
+                self.msg_list.insert(tk.END, f'[{d}] {recv.getHeader("username")}> {msg}')
         self.connection.close()
 
     def send(self, msg):
         #Sends a message and adds it to the texts list
-        self.connection.sendMsg(Message(msg))
+        ecmsg = Message(msg)
+        ecmsg.setHeader('username', self.username)
+        self.connection.sendMsg(ecmsg)
         self.entry_field.delete(0, tk.END)
         d = datetime.datetime.now()
-        self.msg_list.insert(tk.END, f'[{d}] ME> {msg}')
+        self.msg_list.insert(tk.END, f'[{d}] {ecmsg.getHeader("username")}> {msg}')
 
     def create_widgets(self):
         #Settings frame is where the IP and port options are

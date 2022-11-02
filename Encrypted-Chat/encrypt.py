@@ -13,10 +13,10 @@ class ECEncrypt:
         self.AES_DKEY = key
 
     def encrypt(self, data:str):
-        data = self._pad(data)
+        data = self._pad(data.decode('utf8'))
         iv = Random.new().read(AES.block_size)
         cipher = AES.new(self.AES_EKEY, AES.MODE_CBC, iv)
-        return iv + cipher.encrypt(data.encode())
+        return iv + cipher.encrypt(data.encode('utf8'))
     
     def decrypt(self, data:bytes):
         iv = data[:16]
