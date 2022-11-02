@@ -8,28 +8,26 @@ def main():
     print(__BANNER__)
     parser = argparse.ArgumentParser(prog='EncryptedChat.py', description='Encrypted Chat Program')
     subparser = parser.add_subparsers(dest='mode')
-
-    #parse each modes
-    client = subparser.add_parser('client')
-    host   = subparser.add_parser('host')
-    gui    = subparser.add_parser('gui')
-
+    
     #check if there are no arguments (just running the main method)
     if not (len(sys.argv) > 1):
         parser.print_help()
+
+    client = subparser.add_parser('client')
+    host   = subparser.add_parser('host')
+    gui    = subparser.add_parser('gui')
     
     #parse the ip and port for both client and host
     client.add_argument('--ip', '-i', type=str, nargs=1, help='Designates server ip address.')
     client.add_argument('--port', '-p', type=int, nargs=1, help='Designates server destination port.')
     host.add_argument('--ip', '-i', type=str, nargs=1, help='Designates local bind ip address.')
     host.add_argument('--port', '-p', type=int, nargs=1, help='Designates server local bind port.')
-
-    #handles all/general errors if the inputs are incomplete
-    client.error(client.print_help())
-    host.error(client.print_help())
+    
+    #client.error(client.print_help())
+    #host.error(client.print_help())  
 
     args = parser.parse_args()
-    
+
     _cli = Cli(args)
 
     if args.mode == 'client':
