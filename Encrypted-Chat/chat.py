@@ -1,6 +1,6 @@
 import threading
 from client import EChatClient
-from ChatServer import EChatServer
+from server import EChatServer
 from message import Message
 import datetime
 
