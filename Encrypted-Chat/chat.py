@@ -84,9 +84,9 @@ class Chat():
             if input_message is not None:
                 d = datetime.datetime.now()
                 print ("\033[A                             \033[A")
-                print(f'[{d}] {self._username}> {input_message}')
+                print(f'[{d}] {self.username}> {input_message}')
                 msg = Message(input_message)
-                msg.setHeader('username', self._username)
+                msg.setHeader('username', self.username)
                 client.sendMsg(msg)
             recv = client.readAvailable()
             if recv != None:
@@ -115,9 +115,9 @@ class Chat():
             if input_message is not None:
                 d = datetime.datetime.now()
                 print ("\033[A                             \033[A")
-                print(f'[{d}] {self._username}> {input_message}')
+                print(f'[{d}] {self.username}> {input_message}')
                 msg = Message(input_message)
-                msg.setHeader('username', self._username)
+                msg.setHeader('username', self.username)
                 server.sendMsg(msg)
             recv = server.readAvailable()
             if recv != None:
