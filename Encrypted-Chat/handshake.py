@@ -1,5 +1,5 @@
 from curses import keyname
-
+import secrets
 
 class handshake:  
    key = None  
@@ -19,8 +19,11 @@ class handshake:
 
    #ecc method. Takes a socket which is connected, the ecc curve to be used and the secret int that was generated in handshake.   
    #Should use this to create the ECC key and return it once it is done. Only called by the handshake method.
-   def ecc(self, socket, secret, curve):  
-        pass
+   def ecc(self, secret, curve):
+     #gen will contain integer within the range of [0-curve.field.n]
+     #[curve.field.n] is all integers within the curve 
+     gen = secret.randbelow(curve.field.n)
+     return gen
 
    #getkey, returns key. Should delete the key once it has been passed. 
    def getKey(self):  
