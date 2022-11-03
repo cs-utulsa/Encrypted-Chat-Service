@@ -2,7 +2,7 @@ import socket
 import sys
 
 ###################################################
-# Client side tester for ChatServer.py
+# Client side tester for server.py
 ###################################################
 
 HOST, PORT = "localhost", 20
