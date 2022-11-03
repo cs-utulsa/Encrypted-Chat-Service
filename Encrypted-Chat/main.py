@@ -1,4 +1,5 @@
 import argparse
+import ipaddress
 import sys
 from chat import Cli
 
@@ -33,6 +34,21 @@ def main():
     
     args = parser.parse_args()
 
+    """
+    Check for valid Ip address and port
+    Shouldn't need it because the GUI should take care of this error
+    """
+    try:
+        target = args.ip[0]
+        ipaddress.IPv4Address(target)
+    except ipaddress.AddressValueError:
+        print('Please input accurate Ip address')
+        exit()
+    
+    if (65535 < args.port[0] < 0):
+        print('Invalid port')
+        exit()
+    
     _cli = Cli(args)
 
     """
