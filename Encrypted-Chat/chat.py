@@ -94,6 +94,10 @@ class Cli():
 
 
     def server_mode(self):
+        """
+        This function implements the server/host functionality of the program. 
+        Similar to client functionality but listens for connection first
+        """
         target = self._args.ip[0]
         port = self._args.port[0]
 

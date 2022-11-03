@@ -5,11 +5,17 @@ from chat import Cli
 __BANNER__ = """Encrypted Chat v1.0"""
 
 def main():
+    """
+    #printing the banner
+    #creating the parser
+    """
     print(__BANNER__)
     parser = argparse.ArgumentParser(prog='EncryptedChat.py', description='Encrypted Chat Program')
     subparser = parser.add_subparsers(dest='mode')
     
+    """
     #check if there are no arguments (just running the main method)
+    """
     if not (len(sys.argv) > 1):
         parser.print_help()
 
@@ -17,19 +23,21 @@ def main():
     host   = subparser.add_parser('host')
     gui    = subparser.add_parser('gui')
     
-    #parse the ip and port for both client and host
+    """
+    #get the input for ip and port in client and host modes
+    """
     client.add_argument('--ip', '-i', type=str, nargs=1, help='Designates server ip address.')
     client.add_argument('--port', '-p', type=int, nargs=1, help='Designates server destination port.')
     host.add_argument('--ip', '-i', type=str, nargs=1, help='Designates local bind ip address.')
     host.add_argument('--port', '-p', type=int, nargs=1, help='Designates server local bind port.')
     
-    #client.error(client.print_help())
-    #host.error(client.print_help())  
-
     args = parser.parse_args()
 
     _cli = Cli(args)
 
+    """
+    #call each modes based on the inputs
+    """
     if args.mode == 'client':
         print("[+] Attempting connection in client mode.")
         if _cli.client_mode() == False:
