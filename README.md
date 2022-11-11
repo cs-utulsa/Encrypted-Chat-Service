@@ -6,4 +6,4 @@ Uses 3 classes for basic chat functionality. They are chat, client and server
 
 Future classes & functionality will be added.  
   
-Currently, this application is not encrypted and runs in the console. It is the baseline for future features. This readme is for the development branch. This branch should be used for code that is still in progress.
+Currently, this application is not encrypted and runs in the console. It is the baseline for future features. This readme is for the production branch, which is only for code that is fully written and tested.
