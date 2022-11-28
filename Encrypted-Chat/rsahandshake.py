@@ -7,7 +7,15 @@ class RSAHandshake:
           self.ekey = Random.new().read(16)
      
 
-     def handshake(self, csock=None, srv=None): 
+     def handshake(self, csock=None, srv=None):
+          """
+          Takes a socket connection and boolean value. Uses boolean to determine if being run on a server or client.
+          Uses asymmetric rsa keys to share an AES key to secure traffic on the given socket.
+
+          :param csock: socket connection between server and client
+          :param srv: boolean value or None
+          :returns: ekey -- current machine's encrypted AES key; ckey -- other machine's encrypted AES key
+          """
           if srv == None:
                print("Client Handshake")
                # RECV PUB KEY
