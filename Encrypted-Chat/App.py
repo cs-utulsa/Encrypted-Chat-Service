@@ -119,7 +119,7 @@ class App(tk.Tk):
     def start_connection(self):
         #Makes the connection and starts the "listening" thread
         self.connection.connect()
-        self.msg_list.insert(tk.END, "CONNECTED TO "+self.target+":"+str(self.port)) #This adds a connected message to the texts
+        # self.msg_list.insert(tk.END, "CONNECTED TO "+self.target+":"+str(self.port)) #This adds a connected message to the texts
         thread = threading.Thread(target=self.listen)
         thread.start()
 
@@ -130,11 +130,11 @@ class App(tk.Tk):
             if recv != None:
                 msg = recv.getContent()
                 d = datetime.datetime.now()
-                self.msg_list.insert(tk.END, f'[{d}] {recv.getHeader("username")}> {msg}')
-            if self.messages:
-                self.canvas.move(tk.ALL, 0, -80)
-            a = TextBubble(self.canvas,False,message=msg)
-            self.messages.append(a)
+                # self.msg_list.insert(tk.END, f'[{d}] {recv.getHeader("username")}> {msg}')
+                if self.messages:
+                    self.canvas.move(tk.ALL, 0, -80)
+                a = TextBubble(self.canvas,False,message=msg)
+                self.messages.append(a)
         self.connection.close()
 
     def send(self, event=None):
