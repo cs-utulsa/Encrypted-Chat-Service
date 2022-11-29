@@ -65,10 +65,10 @@ class TextBubble:
 #The entire App class
 class App(tk.Tk):
 
-    def __init__(self):
+    def __init__(self, username):
         super().__init__()
 
-        self.username = "Temp-User"
+        self.username = username
 
         self.style = ttk.Style("cyborg")
         self.style.configure('TButton', background=PRIMARY_COLOR, bordercolor=PRIMARY_COLOR, lightcolor=PRIMARY_COLOR, darkcolor=PRIMARY_COLOR)
@@ -144,7 +144,7 @@ class App(tk.Tk):
             return
         ecmsg = Message(msg)
         ecmsg.setHeader('username', self.username)
-        # ~ self.connection.sendMsg(ecmsg)
+        self.connection.sendMsg(ecmsg)
         self.entry_field.delete(0, tk.END)
         if self.messages:
             self.canvas.move(tk.ALL, 0, -80)
