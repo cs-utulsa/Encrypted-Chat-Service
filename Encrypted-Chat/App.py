@@ -48,24 +48,24 @@ class TextBubble:
         time_label.grid(row=0,column=0,sticky="w",padx=5)
         message_label.grid(row=1, column=0,sticky="w",padx=5,pady=3)
         if is_sender:
-            self.i = self.master.create_window(960-250,340,window=self.frame,anchor='w')
+            self.i = self.master.create_window(960-235,340,window=self.frame,anchor='w')
             self.master.create_polygon(self.draw_triangle_sender(self.i), fill=PRIMARY_COLOR, outline=PRIMARY_COLOR)
         else:
-            self.i = self.master.create_window(70,340,window=self.frame,anchor='w')
+            self.i = self.master.create_window(15,340,window=self.frame,anchor='w')
             self.master.create_polygon(self.draw_triangle_receiver(self.i), fill="gray", outline="gray")
 
     def draw_triangle_sender(self,widget):
         x1, y1, x2, y2 = self.master.bbox(widget)
-        return x1 + 180, y2 - 10, x1 + 195, y2 + 10, x1 + 180, y2
+        return x1 + 190, y2 + 15, x1 + 205, y2 + 35, x1 + 190, y2 + 25
     
     def draw_triangle_receiver(self,widget):
         x1, y1, x2, y2 = self.master.bbox(widget)
-        return x1, y2 - 10, x1 - 15, y2 + 10, x1, y2
+        return x1, y2 + 15, x1 - 15, y2 + 35, x1, y2 + 25
 
 #The entire App class
 class App(tk.Tk):
 
-    def __init__(self, username):
+    def __init__(self, username="Dev"):
         super().__init__()
 
         self.username = username
@@ -144,7 +144,7 @@ class App(tk.Tk):
             return
         ecmsg = Message(msg)
         ecmsg.setHeader('username', self.username)
-        self.connection.sendMsg(ecmsg)
+        # self.connection.sendMsg(ecmsg) #TESTING BY DAWSON
         self.entry_field.delete(0, tk.END)
         if self.messages:
             self.canvas.move(tk.ALL, 0, -80)
