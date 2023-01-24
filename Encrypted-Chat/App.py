@@ -30,6 +30,7 @@ PRIMARY_COLOR = '#57B400'
 SERVER = 0
 CLIENT = 1
 
+# Custom widget to show profile pic, username, time, and msg
 class message_widget(tk.Frame):
     def __init__(self, parent, prof, username, msg, datetime):
         tk.Frame.__init__(self, parent)
@@ -116,7 +117,7 @@ class App(tk.Tk):
             if recv != None:
                 msg = recv.getContent()
                 d = datetime.datetime.now()
-                message_widget(self.scrollable_frame, 'prof.png', self.username, msg, d).pack(anchor=tk.W)
+                message_widget(self.scrollable_frame, ASSETDIR+'\\prof2.jpg', recv.getHeader("username"), msg, d).pack(anchor=tk.W)
                 # self.msg_list.insert(tk.END, f'[{d}] {recv.getHeader("username")}> {msg}')
         self.connection.close()
 
@@ -127,10 +128,10 @@ class App(tk.Tk):
             return
         ecmsg = Message(msg)
         ecmsg.setHeader('username', self.username)
-        # self.connection.sendMsg(ecmsg) #TESTING BY DAWSON
+        self.connection.sendMsg(ecmsg) #TESTING BY DAWSON
         self.entry_field.delete(0, tk.END)
         d = datetime.datetime.now()
-        message_widget(self.scrollable_frame, 'prof.png', self.username, msg, d).pack(anchor=tk.W)
+        message_widget(self.scrollable_frame, ASSETDIR+'\\prof1.jpg', self.username, msg, d).pack(anchor=tk.W)
 
     def bindings(self):
         self.bind('<Return>', self.send)
