@@ -10,7 +10,7 @@ import threading
 import textwrap
 from PIL import Image, ImageTk
 
-#ECS imports
+#Hermes imports
 from ChatServer import EChatServer
 from client import EChatClient
 from message import Message
@@ -30,42 +30,28 @@ PRIMARY_COLOR = '#57B400'
 SERVER = 0
 CLIENT = 1
 
-class TextBubble:
-    def __init__(self,master,is_sender,message=""):
-        self.master = master
-        self.is_sender = is_sender
-        self.frame = tk.Frame(master)
-        time_label = tk.Label(self.frame,text=datetime.datetime.now().strftime("%d-%m-%Y %X"))
-        message_label = tk.Label(self.frame, text=textwrap.fill(message, 25))
-        if is_sender:
-            self.frame.configure(bg=PRIMARY_COLOR)
-            message_label.configure(bg=PRIMARY_COLOR, font=FONT)
-            time_label.configure(bg=PRIMARY_COLOR, font=FONT)
-        else:
-            self.frame.configure(bg="gray")
-            message_label.configure(bg="gray", font=FONT)
-            time_label.configure(bg="gray", font=FONT)
-        time_label.grid(row=0,column=0,sticky="w",padx=5)
-        message_label.grid(row=1, column=0,sticky="w",padx=5,pady=3)
-        if is_sender:
-            self.i = self.master.create_window(960-235,340,window=self.frame,anchor='w')
-            self.master.create_polygon(self.draw_triangle_sender(self.i), fill=PRIMARY_COLOR, outline=PRIMARY_COLOR)
-        else:
-            self.i = self.master.create_window(15,340,window=self.frame,anchor='w')
-            self.master.create_polygon(self.draw_triangle_receiver(self.i), fill="gray", outline="gray")
+class message_widget(tk.Frame):
+    def __init__(self, parent, prof, username, msg, datetime):
+        tk.Frame.__init__(self, parent)
+        self.image = Image.open(prof).resize((50,50))
+        self.prof = ImageTk.PhotoImage(self.image)
+        self.label = ttk.Label(self, image=self.prof)
+        self.label.grid(row=0, column=0, rowspan=2)
 
-    def draw_triangle_sender(self,widget):
-        x1, y1, x2, y2 = self.master.bbox(widget)
-        return x1 + 190, y2 + 15, x1 + 205, y2 + 35, x1 + 190, y2 + 25
-    
-    def draw_triangle_receiver(self,widget):
-        x1, y1, x2, y2 = self.master.bbox(widget)
-        return x1, y2 + 15, x1 - 15, y2 + 35, x1, y2 + 25
+        self.user_text = ttk.Label(self, text=username, font=("OCRB", 12, 'bold'))
+        self.user_text.grid(row=0, column=1, sticky="sw", padx=(10,0))
+
+        self.grid_columnconfigure(2, weight=1)
+        self.time_text = ttk.Label(self, text=f'[{datetime}'[:-10]+"]", font=("OCR", 10))
+        self.time_text.grid(row=0, column=2, sticky="sw", padx=(5,0))
+
+        self.msg_text = ttk.Label(self, text=msg, font=FONT, wraplength=800)
+        self.msg_text.grid(row=1, column=1, rowspan=2, columnspan=2, sticky="nw", padx=(10,0), pady=(0,15))
 
 #The entire App class
 class App(tk.Tk):
 
-    def __init__(self, username="Dev"):
+    def __init__(self, username="Developer"):
         super().__init__()
 
         self.username = username
@@ -130,11 +116,8 @@ class App(tk.Tk):
             if recv != None:
                 msg = recv.getContent()
                 d = datetime.datetime.now()
+                message_widget(self.scrollable_frame, 'prof.png', self.username, msg, d).pack(anchor=tk.W)
                 # self.msg_list.insert(tk.END, f'[{d}] {recv.getHeader("username")}> {msg}')
-                if self.messages:
-                    self.canvas.move(tk.ALL, 0, -80)
-                a = TextBubble(self.canvas,False,message=msg)
-                self.messages.append(a)
         self.connection.close()
 
     def send(self, event=None):
@@ -146,10 +129,8 @@ class App(tk.Tk):
         ecmsg.setHeader('username', self.username)
         # self.connection.sendMsg(ecmsg) #TESTING BY DAWSON
         self.entry_field.delete(0, tk.END)
-        if self.messages:
-            self.canvas.move(tk.ALL, 0, -80)
-        a = TextBubble(self.canvas,True,message=msg)
-        self.messages.append(a)
+        d = datetime.datetime.now()
+        message_widget(self.scrollable_frame, 'prof.png', self.username, msg, d).pack(anchor=tk.W)
 
     def bindings(self):
         self.bind('<Return>', self.send)
@@ -178,9 +159,20 @@ class App(tk.Tk):
 
         #Texts frame is where all the texts are displayed
         texts_frame = ttk.Frame()
-        texts_frame.pack(padx=X_PADDING, fill=tk.BOTH, expand=tk.TRUE)
-        self.canvas = tk.Canvas(texts_frame)
-        self.canvas.pack(fill=tk.BOTH, expand=tk.TRUE)
+        texts_frame.pack(fill=tk.BOTH, expand=True, padx=15)
+        canvas = tk.Canvas(texts_frame)
+        scrollbar = ttk.Scrollbar(texts_frame, orient="vertical", command=canvas.yview)
+        self.scrollable_frame = ttk.Frame(canvas)
+        canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(
+                scrollregion=canvas.bbox("all")
+            )
+        )
 
         #Send frame is where you enter and send texts
         send_frame = ttk.Frame()
