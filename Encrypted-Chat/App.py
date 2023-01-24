@@ -7,7 +7,6 @@ from ttkbootstrap.dialogs.dialogs import Messagebox
 import os
 import datetime
 import threading
-import textwrap
 from PIL import Image, ImageTk
 
 #Hermes imports
@@ -63,6 +62,12 @@ class App(tk.Tk):
         self.style.map('TButton', lightcolor=[('disabled',PRIMARY_COLOR), ('active',PRIMARY_COLOR)])
         self.style.map('TButton', bordercolor=[('disabled',PRIMARY_COLOR), ('active',PRIMARY_COLOR)])
         self.style.map('TButton', darkcolor=[('disabled',PRIMARY_COLOR), ('active',PRIMARY_COLOR)])
+
+        self.style.configure("Gray.TButton",background='gray',bordercolor='gray',lightcolor='gray',darkcolor='gray')
+        self.style.map('TButton', background=[('disabled','gray'), ('active','gray')])
+        self.style.map('TButton', lightcolor=[('disabled','gray'), ('active','gray')])
+        self.style.map('TButton', bordercolor=[('disabled','gray'), ('active','gray')])
+        self.style.map('TButton', darkcolor=[('disabled','gray'), ('active','gray')])
 
         #Defining some app information
         self.title(APPNAME)
@@ -132,6 +137,8 @@ class App(tk.Tk):
         self.entry_field.delete(0, tk.END)
         d = datetime.datetime.now()
         message_widget(self.scrollable_frame, ASSETDIR+'\\prof1.jpg', self.username, msg, d).pack(anchor=tk.W)
+        self.canvas.update()
+        self.canvas.yview_moveto(1.0)
 
     def bindings(self):
         self.bind('<Return>', self.send)
@@ -161,17 +168,17 @@ class App(tk.Tk):
         #Texts frame is where all the texts are displayed
         texts_frame = ttk.Frame()
         texts_frame.pack(fill=tk.BOTH, expand=True, padx=15)
-        canvas = tk.Canvas(texts_frame)
-        scrollbar = ttk.Scrollbar(texts_frame, orient="vertical", command=canvas.yview)
-        self.scrollable_frame = ttk.Frame(canvas)
-        canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set)
-        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.canvas = tk.Canvas(texts_frame)
+        self.scrollbar = ttk.Scrollbar(texts_frame, orient="vertical", command=self.canvas.yview)
+        self.scrollable_frame = ttk.Frame(self.canvas)
+        self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self.scrollable_frame.bind(
             "<Configure>",
-            lambda e: canvas.configure(
-                scrollregion=canvas.bbox("all")
+            lambda e: self.canvas.configure(
+                scrollregion=self.canvas.bbox("all")
             )
         )
 
@@ -182,6 +189,8 @@ class App(tk.Tk):
         self.entry_field.pack(padx=(0,X_PADDING), side=tk.LEFT, fill=tk.X, expand=tk.TRUE)
         send_button = ttk.Button(send_frame, text="Send", command=lambda: self.send())
         send_button.pack(side=tk.RIGHT)
+        attach_button = ttk.Button(send_frame, text="Attach File", style='Gray.TButton')
+        attach_button.pack(side=tk.RIGHT, padx=(0,X_PADDING))
         send_frame.pack(padx=X_PADDING, pady=Y_PADDING, fill=tk.X)
 
 if __name__ == "__main__":
