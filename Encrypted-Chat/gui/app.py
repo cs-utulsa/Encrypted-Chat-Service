@@ -1,6 +1,7 @@
 #! python3
 
 # Basic imports
+import tkinter.filedialog
 import tkinter as tk
 import ttkbootstrap as ttk
 from ttkbootstrap.dialogs.dialogs import Messagebox
@@ -148,6 +149,7 @@ class App(tk.Tk):
                 self.running = False
                 self.conman.close()
                 print("Server Closed")
+
     def send(self, event=None):
         #Sends a message and adds it to the texts list
         msg = self.entry_field.get()
@@ -161,6 +163,10 @@ class App(tk.Tk):
         message_widget(self.scrollable_frame, ASSETDIR+'\\prof1.jpg', self.username, msg, d).pack(anchor=tk.W)
         self.canvas.update()
         self.canvas.yview_moveto(1.0)
+
+    def addAttachment(self):
+        file_path = tkinter.filedialog.askopenfilename(initialdir = "/", title = "Attachment",filetypes = (("Text files","*.txt*"),("all files","*.*")))
+        print(file_path)
 
     def bindings(self):
         self.bind('<Return>', self.send)
@@ -211,7 +217,7 @@ class App(tk.Tk):
         self.entry_field.pack(padx=(0,X_PADDING), side=tk.LEFT, fill=tk.X, expand=tk.TRUE)
         send_button = ttk.Button(send_frame, text="Send", command=lambda: self.send())
         send_button.pack(side=tk.RIGHT)
-        attach_button = ttk.Button(send_frame, text="Attach File", style='Gray.TButton')
+        attach_button = ttk.Button(send_frame, text="Attach File", style='Gray.TButton', command=self.addAttachment)
         attach_button.pack(side=tk.RIGHT, padx=(0,X_PADDING))
         send_frame.pack(padx=X_PADDING, pady=Y_PADDING, fill=tk.X)
 
