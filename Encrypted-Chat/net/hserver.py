@@ -1,21 +1,20 @@
 import socket
 import select
-from message import Message
+import rsa
+from crypto.encrypt import ECEncrypt
+from net.message import Message
+from crypto.handshake import RSAHandshake
 
 class EChatServer:
-    def __init__(self, port_number):
-        ################################################
-        # Parameters
-        ################################################
+    def __init__(self, ip_address="0.0.0.0", port_number=8888):
         self.port_number = port_number
-
-        ################################################
-        # Variables
-        ################################################
-        self.DEFAULT_IP = "localhost"
-        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # TCP Socket Var
-        self.server.settimeout(30) # sets time socket will wait for a connection; 30s
+        self.IP_ADDRESS = ip_address
+        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
+        
+        # Sets the time socket will wait for a connection; 30s
+        self.server.settimeout(30)
         self.sockets = []
+        self.crypt_pair = {}
 
     def connect(self):
         """
@@ -25,8 +24,10 @@ class EChatServer:
         :return: None if err occurs
         """
         try:
-            self.server.bind((self.DEFAULT_IP, self.port_number)) # locks server socket to IP:PORT
-            self.server.listen(1) # waits for connection
+            # locks server socket to IP:PORT
+            self.server.bind((self.IP_ADDRESS, self.port_number))
+            # waits for connection
+            self.server.listen(1)
             self.sockets.append(self.server)
         except:
             print("ERR: no connection made")
@@ -49,7 +50,7 @@ class EChatServer:
         """
         self.port_number = port_num
 
-    def sendMsg(self, message: Message):
+    def sendMsg(self, message: Message, exclusion=None):
         """
         Sends a string to ...
 
@@ -57,8 +58,9 @@ class EChatServer:
         :return:
         """
         for socket in self.sockets:
-            if socket != self.server:
-                socket.sendall(message.getData().encode('utf8'))
+            if socket != self.server and socket != exclusion:
+                em = self.crypt_pair[socket]
+                socket.sendall(em.encrypt(message.getData().encode('utf8')))
 
     def readAvailable(self):
         """
@@ -70,13 +72,29 @@ class EChatServer:
         for socket in read_sockets:
             if socket == self.server:
                 print("Connected to client")
-                self.sockets.append(self.server.accept()[0])
+                csock = self.server.accept()[0]
+                self.sockets.append(csock)
+                hs = RSAHandshake()
+                ekey, dkey = hs.handshake(csock=csock, srv=True)
+                enc = ECEncrypt(ekey,dkey)
+                self.crypt_pair[csock] = enc
             else:
                 try:
                     msg = Message()
-                    msg.parseMsg(socket.recv(1024).decode('utf8'))
+                    em = self.crypt_pair[socket]
+                    data = em.decrypt(socket.recv(1024))
+                    print(f'DECRYPT: {data}')
+                    msg.parseMsg(data)
+
+                    # Check if client is disconnecting
+                    if msg.getHeader("message_type") == "control" and msg.getContent() == "CLOSING":
+                        del self.crypt_pair[socket]
+                        socket.close()
+                        del socket
+                    self.sendMsg(msg, exclusion=socket)
                     return msg
-                except:
+                except Exception as e:
+                    print(e)
                     print("Client Disconnected")
                     self.sockets.remove(socket)
                     socket.close()
@@ -89,19 +107,3 @@ class EChatServer:
         """
         for sock in self.sockets:
             sock.close()
-            
-if __name__ == "__main__":
-    PORT = 20
-
-    ## Constructor and connect Test
-    server = EChatServer(PORT)
-    conn, addr = server.connect()
-
-    ## receiving data from made connection & send back in uppercase
-    data = conn.recv(1024).strip()
-    print("{} wrote: ".format(addr))
-    print(data)
-    conn.sendall(data.upper())
-
-    ## get_port Test
-    print("server on port: {}".format(server.get_port()))

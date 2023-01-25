@@ -1,9 +1,10 @@
 import threading
-from client import EChatClient
-from ChatServer import EChatServer
-from message import Message
+from net.hclient import EChatClient
+from net.hserver import EChatServer
+from net.message import Message
 import datetime
-from App import App
+from gui.app import App
+
 class InputHandler():
     """
     Do not modify this class it is used to poll user input 
@@ -39,6 +40,8 @@ class InputHandler():
 
 class Chat():
     """
+    WARNING - LEGACY CLI CHAT CLASS
+    
     The Chat class is used for parsing the command arguments and handling
     user input to be passed to the host or client objects.
     """

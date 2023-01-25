@@ -1,8 +1,8 @@
 import socket
 import select
-from encrypt import ECEncrypt
-from message import Message
-from rsahandshake import RSAHandshake
+from crypto.encrypt import ECEncrypt
+from net.message import Message
+from crypto.handshake import RSAHandshake
 
 class EChatClient():
     HOST = ""
@@ -16,10 +16,6 @@ class EChatClient():
         self.PORT = port
     
     def connect(self):
-        """
-
-        :return:
-        """
         count = 1
         while(count < 6):
             try:
@@ -37,18 +33,9 @@ class EChatClient():
         return False
     
     def sendMsg(self, message: Message):
-        """
-
-        :param message:
-        :return:
-        """
         self.client_socket.sendall(self.encrypt_pair.encrypt(message.getData().encode('utf8')))
 
     def readAvailable(self):
-        """
-
-        :return:
-        """
         read_sockets, write_sockets, error_sockets = select.select([self.client_socket], [], [], 0)
         for sock in read_sockets:
             msg = Message()
@@ -63,53 +50,16 @@ class EChatClient():
         return None
 
     def close(self):
-        """
-
-        :return:
-        """
         self.client_socket.close()
 
     def getPort(self):
-        """
-
-        :return:
-        """
         return self.PORT
 
     def setPort(self, port):
-        """
-
-        :param port:
-        :return:
-        """
         self.PORT = port
 
     def getIP(self):
-        """
-
-        :return:
-        """
         return self.HOST
 
     def setIP(self, IP):
-        """
-
-        :param IP:
-        :return:
-        """
         self.HOST = IP
-if __name__ == "__main__":
-    PORT = 120
-
-    ## Constructor and connect Test
-    client = EChatClient(PORT)
-    conn, addr = client.connect()
-
-    ## receiving data from made connection & send back in uppercase
-    data = conn.recv(1024).strip()
-    print("{} wrote: ".format(addr))
-    print(data)
-    conn.sendall(data.upper())
-
-    ## get_port Test
-    print("server on port: {}".format(server.get_port())) 

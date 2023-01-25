@@ -27,15 +27,15 @@ class Message:
     def getHeaders(self):
         return self._headers
 
-    def getHeader(self, header):
+    def getHeader(self, header) -> str:
         return self._headers[header]
 
 
-    def getContent(self):
+    def getContent(self) -> str:
         return self._content
 
 
-    def getData(self):
+    def getData(self) -> list:
         data = {'headers': self._headers, 'content': self._content}
         return json.dumps(data)
 

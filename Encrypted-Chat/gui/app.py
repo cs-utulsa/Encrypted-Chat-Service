@@ -1,6 +1,6 @@
-#!python3.10
+#! python3
 
-#Basic imports
+# Basic imports
 import tkinter as tk
 import ttkbootstrap as ttk
 from ttkbootstrap.dialogs.dialogs import Messagebox
@@ -9,13 +9,14 @@ import datetime
 import threading
 from PIL import Image, ImageTk
 
-#Hermes imports
-from ChatServer import EChatServer
-from client import EChatClient
-from message import Message
+# Hermes imports
+from net.message import Message
+from net.connection_manager import ConnectionManager
 
-#Working directory stuff that we'll need in the future for the installer
-NATIVEDIR = os.path.dirname(os.path.abspath(__file__))
+# Working directory stuff that we'll need in the future for the installer
+
+# Gets this scripts current directory and then traverses up one
+NATIVEDIR = os.path.dirname(os.path.abspath(__file__)) + "\\..\\"
 ASSETDIR = os.path.join(NATIVEDIR, "assets")
 
 #App graphics constants
@@ -48,14 +49,20 @@ class message_widget(tk.Frame):
         self.msg_text = ttk.Label(self, text=msg, font=FONT, wraplength=800)
         self.msg_text.grid(row=1, column=1, rowspan=2, columnspan=2, sticky="nw", padx=(10,0), pady=(0,15))
 
-#The entire App class
+# The entire App class
 class App(tk.Tk):
 
-    def __init__(self, username="Developer"):
+    # Initialize ConnectionManager
+    conman = None
+
+    # Initialization function passed the net.hconnection object that handles Hermes connection states 
+    def __init__(self):
         super().__init__()
-
-        self.username = username
-
+        
+        # Setup ConnectionManager
+        self.conman = ConnectionManager()
+        self.username = "TEST_USER"
+        
         self.style = ttk.Style("cyborg")
         self.style.configure('TButton', background=PRIMARY_COLOR, bordercolor=PRIMARY_COLOR, lightcolor=PRIMARY_COLOR, darkcolor=PRIMARY_COLOR)
         self.style.map('TButton', background=[('disabled',PRIMARY_COLOR), ('active',PRIMARY_COLOR)])
@@ -90,42 +97,57 @@ class App(tk.Tk):
     def on_closing(self):
         #Kills the app when the 'x' is pressed
         self.running = False
+        if self.conman.isConnected():
+            self.conman.close()
         self.quit()
         self.destroy()
 
-    def connect(self, target, port): #NOTE TO FUTURE SELF: RENAME THIS FUNCTION BECAUSE ITS USED IN SERVER CLASSES
-        #Takes a target and port and determines whether you're client or server
-        #This will be changed in this future. Just needed something quick for sprint 2
+    def connect(self, target, port): 
+        # NOTE TO FUTURE SELF: RENAME THIS FUNCTION BECAUSE ITS USED IN SERVER CLASSES
+        # Takes a target and port and determines whether you're client or server
+        # This will be changed in this future. Just needed something quick for sprint 2
+
+        # Close existing connections
+        if self.conman.isConnected():
+            self.conman.close()
+        
         self.target = target
         self.port = int(port)
+
         msg = "Would you like to open as server or client?"
         buttons = ["Server:primary", "Client"]
         mbox = Messagebox.show_question(msg, buttons=buttons, default="Server")
-        if mbox == "Server":
-            self.connection = EChatServer(self.port)
-            self.start_connection()
-        else:
-            self.connection = EChatClient(self.target, self.port)
-            self.start_connection()
 
-    def start_connection(self):
-        #Makes the connection and starts the "listening" thread
-        self.connection.connect()
-        # self.msg_list.insert(tk.END, "CONNECTED TO "+self.target+":"+str(self.port)) #This adds a connected message to the texts
+        if mbox == "Server":
+            self.conman.createRoom(self.target, self.port)
+        else:
+            self.conman.connectToRoom(self.target, self.port)
+        
         thread = threading.Thread(target=self.listen)
         thread.start()
 
     def listen(self):
         #This is run by a separate thread that is always looking for incoming messages and posts them to the texts
         while self.running:
-            recv = self.connection.readAvailable()
-            if recv != None:
-                msg = recv.getContent()
-                d = datetime.datetime.now()
-                message_widget(self.scrollable_frame, ASSETDIR+'\\prof2.jpg', recv.getHeader("username"), msg, d).pack(anchor=tk.W)
-                # self.msg_list.insert(tk.END, f'[{d}] {recv.getHeader("username")}> {msg}')
-        self.connection.close()
+            recv_msg = self.conman.getNextMessage()
+            if recv_msg != None:
+                self.parseMessage(recv_msg)
+        self.conman.close()
 
+    def parseMessage(self, msg:Message):
+
+        # Message is a basic text message
+        if msg.getHeader("message_type") == "message":
+            content = msg.getContent()
+            d = datetime.datetime.now()
+            message_widget(self.scrollable_frame, ASSETDIR+'\\prof2.jpg', msg.getHeader("username"), content, d).pack(anchor=tk.W)
+
+        # Message is a control message
+        if msg.getHeader("message_type") == "control":
+            if msg.getContent() == "SERVER CLOSE":
+                self.running = False
+                self.conman.close()
+                print("Server Closed")
     def send(self, event=None):
         #Sends a message and adds it to the texts list
         msg = self.entry_field.get()
@@ -133,7 +155,7 @@ class App(tk.Tk):
             return
         ecmsg = Message(msg)
         ecmsg.setHeader('username', self.username)
-        self.connection.sendMsg(ecmsg) #TESTING BY DAWSON
+        self.conman.sendMessage(ecmsg) #TESTING BY DAWSON
         self.entry_field.delete(0, tk.END)
         d = datetime.datetime.now()
         message_widget(self.scrollable_frame, ASSETDIR+'\\prof1.jpg', self.username, msg, d).pack(anchor=tk.W)
