@@ -37,7 +37,8 @@ class ECEncrypt:
     def decrypt(self, data:bytes):
         iv = data[:16]
         decrypt_cipher = AES.new(self.AES_DKEY, AES.MODE_CBC, iv)
-        return self.unpad(decrypt_cipher.decrypt(data[16:]).decode('utf8'))
+        dbg = decrypt_cipher.decrypt(data[16:])
+        return self.unpad(dbg.decode())
 
     """
     Pad the data to achieve equivalent blocksize

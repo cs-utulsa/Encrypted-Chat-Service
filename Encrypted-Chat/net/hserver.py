@@ -4,7 +4,7 @@ import rsa
 from crypto.encrypt import ECEncrypt
 from net.message import Message
 from crypto.handshake import RSAHandshake
-
+import time
 class EChatServer:
     def __init__(self, ip_address="0.0.0.0", port_number=8888):
         self.port_number = port_number
@@ -60,7 +60,12 @@ class EChatServer:
         for socket in self.sockets:
             if socket != self.server and socket != exclusion:
                 em = self.crypt_pair[socket]
-                socket.sendall(em.encrypt(message.getData().encode('utf8')))
+                for msg in message.getData():
+                    print(msg)
+                    print(len(msg))
+                    # This is because windows sockets are dumb and dont seperate packets if they arrive too fast
+                    time.sleep(0.0001)
+                    socket.sendall(em.encrypt(msg.encode('utf8')))
 
     def readAvailable(self):
         """
@@ -82,15 +87,24 @@ class EChatServer:
                 try:
                     msg = Message()
                     em = self.crypt_pair[socket]
-                    data = em.decrypt(socket.recv(1024))
-                    print(f'DECRYPT: {data}')
-                    msg.parseMsg(data)
-
-                    # Check if client is disconnecting
-                    if msg.getHeader("message_type") == "control" and msg.getContent() == "CLOSING":
-                        del self.crypt_pair[socket]
-                        socket.close()
-                        del socket
+                    total_content = ""
+                    while True:
+                        tmp_msg = Message()
+                        data = em.decrypt(socket.recv(2048))
+                        print(f'DECRYPT: {data}')
+                        tmp_msg.parseMsg(data)
+                        total_content += tmp_msg.getContent()
+                        
+                        # Check if client is disconnecting
+                        if msg.getHeader("message_type") == "control" and msg.getContent() == "CLOSING":
+                            del self.crypt_pair[socket]
+                            socket.close()
+                            del socket
+                        if tmp_msg.getHeader('seg').split(':')[0] == tmp_msg.getHeader('seg').split(':')[1]:
+                            msg.setHeaders(tmp_msg.getHeaders())
+                            print("Done Fragmenting")
+                            break
+                    msg.setContent(total_content)
                     self.sendMsg(msg, exclusion=socket)
                     return msg
                 except Exception as e:

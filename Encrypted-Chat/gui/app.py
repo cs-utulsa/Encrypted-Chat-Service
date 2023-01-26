@@ -8,6 +8,8 @@ from ttkbootstrap.dialogs.dialogs import Messagebox
 import os
 import datetime
 import threading
+import tempfile
+import base64
 from PIL import Image, ImageTk
 
 # Hermes imports
@@ -31,6 +33,9 @@ PRIMARY_COLOR = '#57B400'
 SERVER = 0
 CLIENT = 1
 
+USER1 = "prof1.jpg"
+USER2 = "prof2.jpg"
+
 # Custom widget to show profile pic, username, time, and msg
 class message_widget(tk.Frame):
     def __init__(self, parent, prof, username, msg, datetime):
@@ -50,6 +55,30 @@ class message_widget(tk.Frame):
         self.msg_text = ttk.Label(self, text=msg, font=FONT, wraplength=800)
         self.msg_text.grid(row=1, column=1, rowspan=2, columnspan=2, sticky="nw", padx=(10,0), pady=(0,15))
 
+
+# Custom widget to show image msg
+class image_message_widget(tk.Frame):
+    def __init__(self, parent, prof, username, img, datetime):
+        tk.Frame.__init__(self, parent)
+
+        print("IMAGE PATH:", img)
+        self.img_res = Image.open(img).resize((500,500))
+        self.tk_img = ImageTk.PhotoImage(self.img_res)
+        self.image = Image.open(prof).resize((50,50))
+        self.prof = ImageTk.PhotoImage(self.image)
+        self.label = ttk.Label(self, image=self.prof)
+        self.label.grid(row=0, column=0, rowspan=2)
+
+        self.user_text = ttk.Label(self, text=username, font=("OCRB", 12, 'bold'))
+        self.user_text.grid(row=0, column=1, sticky="sw", padx=(10,0))
+
+        self.grid_columnconfigure(2, weight=1)
+        self.time_text = ttk.Label(self, text=f'[{datetime}'[:-10]+"]", font=("OCR", 10))
+        self.time_text.grid(row=0, column=2, sticky="sw", padx=(5,0))
+
+        self.msg_text = ttk.Label(self, image=self.tk_img)
+        self.msg_text.grid(row=1, column=1, rowspan=2, columnspan=2, sticky="nw", padx=(10,0), pady=(0,15))
+
 # The entire App class
 class App(tk.Tk):
 
@@ -62,7 +91,7 @@ class App(tk.Tk):
         
         # Setup ConnectionManager
         self.conman = ConnectionManager()
-        self.username = "TEST_USER"
+        self.username = "Dr_Wainwright"
         
         self.style = ttk.Style("cyborg")
         self.style.configure('TButton', background=PRIMARY_COLOR, bordercolor=PRIMARY_COLOR, lightcolor=PRIMARY_COLOR, darkcolor=PRIMARY_COLOR)
@@ -133,15 +162,25 @@ class App(tk.Tk):
             recv_msg = self.conman.getNextMessage()
             if recv_msg != None:
                 self.parseMessage(recv_msg)
+                self.canvas.update()
+                self.canvas.yview_moveto(1.0)
         self.conman.close()
 
     def parseMessage(self, msg:Message):
-
+        content = msg.getContent()
         # Message is a basic text message
         if msg.getHeader("message_type") == "message":
-            content = msg.getContent()
             d = datetime.datetime.now()
-            message_widget(self.scrollable_frame, ASSETDIR+'\\prof2.jpg', msg.getHeader("username"), content, d).pack(anchor=tk.W)
+            message_widget(self.scrollable_frame, ASSETDIR+'\\'+USER1, msg.getHeader("username"), content, d).pack(anchor=tk.W)
+        
+        # Message is an image
+        if msg.getHeader("message_type") == "image":
+            d = datetime.datetime.now()
+            img = open(self.username + "img.tmp", 'wb')
+            img.write(base64.decodebytes(content[2:-1].encode('utf8')))
+            print(img.name)
+            image_message_widget(self.scrollable_frame, ASSETDIR+'\\'+USER1, msg.getHeader("username"), img.name, d).pack(anchor=tk.W)
+            img.close()
 
         # Message is a control message
         if msg.getHeader("message_type") == "control":
@@ -150,26 +189,48 @@ class App(tk.Tk):
                 self.conman.close()
                 print("Server Closed")
 
-    def send(self, event=None):
+    def sendTextMessage(self, event=None):
         #Sends a message and adds it to the texts list
         msg = self.entry_field.get()
         if msg == "":
             return
         ecmsg = Message(msg)
         ecmsg.setHeader('username', self.username)
+        ecmsg.setHeader('message_type','message')
         self.conman.sendMessage(ecmsg) #TESTING BY DAWSON
         self.entry_field.delete(0, tk.END)
         d = datetime.datetime.now()
-        message_widget(self.scrollable_frame, ASSETDIR+'\\prof1.jpg', self.username, msg, d).pack(anchor=tk.W)
+        message_widget(self.scrollable_frame, ASSETDIR+'\\'+USER2, self.username, msg, d).pack(anchor=tk.W)
         self.canvas.update()
         self.canvas.yview_moveto(1.0)
 
+    def sendImageMessage(self, path):
+
+        image = open(path, 'rb')
+        data = b''
+        for line in image.readlines():
+            data +=line
+        #Sends a message and adds it to the texts list
+        msg = self.entry_field.get()
+        ecmsg = Message()
+        ecmsg.setHeader('username', self.username)
+        ecmsg.setHeader('message_type', 'image')
+        ecmsg.setContent(str(base64.b64encode(data)))
+        self.conman.sendMessage(ecmsg) #TESTING BY DAWSON
+        self.entry_field.delete(0, tk.END)
+        d = datetime.datetime.now()
+        image_message_widget(self.scrollable_frame, ASSETDIR+'\\'+USER2, self.username, image.name, d).pack(anchor=tk.W)
+        self.canvas.update()
+        self.canvas.yview_moveto(1.0)
+        image.close()
+
     def addAttachment(self):
-        file_path = tkinter.filedialog.askopenfilename(initialdir = "/", title = "Attachment",filetypes = (("Text files","*.txt*"),("all files","*.*")))
+        file_path = tkinter.filedialog.askopenfilename(initialdir = "/", title = "Attachment",filetypes = (("all files","*.*"),("Text files","*.txt*")))
         print(file_path)
+        self.sendImageMessage(file_path)
 
     def bindings(self):
-        self.bind('<Return>', self.send)
+        self.bind('<Return>', self.sendTextMessage)
 
     def create_widgets(self):
         #Settings frame is where the IP and port options are
@@ -215,7 +276,7 @@ class App(tk.Tk):
         my_msg = tk.StringVar()
         self.entry_field = ttk.Entry(send_frame, textvariable=my_msg, font=FONT)
         self.entry_field.pack(padx=(0,X_PADDING), side=tk.LEFT, fill=tk.X, expand=tk.TRUE)
-        send_button = ttk.Button(send_frame, text="Send", command=lambda: self.send())
+        send_button = ttk.Button(send_frame, text="Send", command=lambda: self.sendTextMessage())
         send_button.pack(side=tk.RIGHT)
         attach_button = ttk.Button(send_frame, text="Attach File", style='Gray.TButton', command=self.addAttachment)
         attach_button.pack(side=tk.RIGHT, padx=(0,X_PADDING))
