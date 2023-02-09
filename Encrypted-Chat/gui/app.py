@@ -11,6 +11,7 @@ import threading
 import tempfile
 import base64
 from PIL import Image, ImageTk
+import uuid
 
 # Hermes imports
 from net.message import Message
@@ -60,24 +61,26 @@ class message_widget(tk.Frame):
 class image_message_widget(tk.Frame):
     def __init__(self, parent, prof, username, img, datetime):
         tk.Frame.__init__(self, parent)
+        try:
+            print("IMAGE PATH:", img)
+            self.img_res = Image.open(img).resize((500,500))
+            self.tk_img = ImageTk.PhotoImage(self.img_res)
+            self.image = Image.open(prof).resize((50,50))
+            self.prof = ImageTk.PhotoImage(self.image)
+            self.label = ttk.Label(self, image=self.prof)
+            self.label.grid(row=0, column=0, rowspan=2)
 
-        print("IMAGE PATH:", img)
-        self.img_res = Image.open(img).resize((500,500))
-        self.tk_img = ImageTk.PhotoImage(self.img_res)
-        self.image = Image.open(prof).resize((50,50))
-        self.prof = ImageTk.PhotoImage(self.image)
-        self.label = ttk.Label(self, image=self.prof)
-        self.label.grid(row=0, column=0, rowspan=2)
+            self.user_text = ttk.Label(self, text=username, font=("OCRB", 12, 'bold'))
+            self.user_text.grid(row=0, column=1, sticky="sw", padx=(10,0))
 
-        self.user_text = ttk.Label(self, text=username, font=("OCRB", 12, 'bold'))
-        self.user_text.grid(row=0, column=1, sticky="sw", padx=(10,0))
+            self.grid_columnconfigure(2, weight=1)
+            self.time_text = ttk.Label(self, text=f'[{datetime}'[:-10]+"]", font=("OCR", 10))
+            self.time_text.grid(row=0, column=2, sticky="sw", padx=(5,0))
 
-        self.grid_columnconfigure(2, weight=1)
-        self.time_text = ttk.Label(self, text=f'[{datetime}'[:-10]+"]", font=("OCR", 10))
-        self.time_text.grid(row=0, column=2, sticky="sw", padx=(5,0))
-
-        self.msg_text = ttk.Label(self, image=self.tk_img)
-        self.msg_text.grid(row=1, column=1, rowspan=2, columnspan=2, sticky="nw", padx=(10,0), pady=(0,15))
+            self.msg_text = ttk.Label(self, image=self.tk_img)
+            self.msg_text.grid(row=1, column=1, rowspan=2, columnspan=2, sticky="nw", padx=(10,0), pady=(0,15))
+        except Exception as e:
+            print("Image message widget error: ", e)
 
 # The entire App class
 class App(tk.Tk):
@@ -176,7 +179,7 @@ class App(tk.Tk):
         # Message is an image
         if msg.getHeader("message_type") == "image":
             d = datetime.datetime.now()
-            img = open(self.username + "img.tmp", 'wb')
+            img = open(str(uuid.uuid4()) + ".tmp", 'wb')
             img.write(base64.decodebytes(content[2:-1].encode('utf8')))
             print(img.name)
             image_message_widget(self.scrollable_frame, ASSETDIR+'\\'+USER1, msg.getHeader("username"), img.name, d).pack(anchor=tk.W)
