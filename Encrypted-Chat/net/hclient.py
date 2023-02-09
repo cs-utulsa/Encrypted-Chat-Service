@@ -46,9 +46,9 @@ class EChatClient():
             try:
                 while True:
                     tmp_msg = Message()
-                    edata = sock.recv(2048)
+                    edata = sock.recv(4096)
                     data = self.encrypt_pair.decrypt(edata)
-                    print(f'DECRYPT: {data}')
+                    #print(f'DECRYPT: {data}')
                     tmp_msg.parseMsg(data)
                     total_content += tmp_msg.getContent()
                     if tmp_msg.getHeader('seg').split(':')[0] == tmp_msg.getHeader('seg').split(':')[1]:

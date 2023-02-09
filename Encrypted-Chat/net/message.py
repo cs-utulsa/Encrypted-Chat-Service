@@ -8,8 +8,8 @@ class Message:
     The header section contains parameters useful for message processing in the future.
     """
 
-    _MAX_CONTENT_SIZE = 900
-    _MAX_MESSAGE_SIZE = 1024
+    _MAX_CONTENT_SIZE = 3900
+    _MAX_MESSAGE_SIZE = 4096
     _content = None
     _headers = {'username': 'anonymous', 'message_type': 'message'}
 

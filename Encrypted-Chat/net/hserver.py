@@ -89,21 +89,24 @@ class EChatServer:
                     em = self.crypt_pair[socket]
                     total_content = ""
                     while True:
-                        tmp_msg = Message()
-                        data = em.decrypt(socket.recv(2048))
-                        print(f'DECRYPT: {data}')
-                        tmp_msg.parseMsg(data)
-                        total_content += tmp_msg.getContent()
-                        
-                        # Check if client is disconnecting
-                        if msg.getHeader("message_type") == "control" and msg.getContent() == "CLOSING":
-                            del self.crypt_pair[socket]
-                            socket.close()
-                            del socket
-                        if tmp_msg.getHeader('seg').split(':')[0] == tmp_msg.getHeader('seg').split(':')[1]:
-                            msg.setHeaders(tmp_msg.getHeaders())
-                            print("Done Fragmenting")
-                            break
+                        try:
+                            tmp_msg = Message()
+                            data = em.decrypt(socket.recv(4096))
+                            #print(f'DECRYPT: {data}')
+                            tmp_msg.parseMsg(data)
+                            total_content += tmp_msg.getContent()
+                            
+                            # Check if client is disconnecting
+                            if msg.getHeader("message_type") == "control" and msg.getContent() == "CLOSING":
+                                del self.crypt_pair[socket]
+                                socket.close()
+                                del socket
+                            if tmp_msg.getHeader('seg').split(':')[0] == tmp_msg.getHeader('seg').split(':')[1]:
+                                msg.setHeaders(tmp_msg.getHeaders())
+                                print("Done Fragmenting")
+                                break
+                        except Exception as e:
+                            print("Server While loop error:", e)
                     msg.setContent(total_content)
                     self.sendMsg(msg, exclusion=socket)
                     return msg
