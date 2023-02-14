@@ -82,6 +82,25 @@ class image_message_widget(tk.Frame):
         except Exception as e:
             print("Image message widget error: ", e)
 
+# Custom widget to show file msg
+class file_message_widget(tk.Frame): # DAWSON 2/13/2023
+    def __init__(self, parent, prof, username, datetime):
+        tk.Frame.__init__(self, parent)
+        self.image = Image.open(prof).resize((50,50))
+        self.prof = ImageTk.PhotoImage(self.image)
+        self.label = ttk.Label(self, image=self.prof)
+        self.label.grid(row=0, column=0, rowspan=2)
+
+        self.user_text = ttk.Label(self, text=username, font=("OCRB", 12, 'bold'))
+        self.user_text.grid(row=0, column=1, sticky="sw", padx=(10,0))
+
+        self.grid_columnconfigure(2, weight=1)
+        self.time_text = ttk.Label(self, text=f'[{datetime}'[:-10]+"]", font=("OCR", 10))
+        self.time_text.grid(row=0, column=2, sticky="sw", padx=(5,0))
+
+        self.attachment_button = ttk.Button(self, text="Attachment", font=FONT)
+        self.attachment_button.grid(row=1, column=1, rowspan=2, columnspan=2, sticky="nw", padx=(10,0), pady=(0,15))
+
 # The entire App class
 class App(tk.Tk):
 
@@ -184,6 +203,15 @@ class App(tk.Tk):
             print(img.name)
             image_message_widget(self.scrollable_frame, ASSETDIR+'\\'+USER1, msg.getHeader("username"), img.name, d).pack(anchor=tk.W)
             img.close()
+            
+        # Message is a file - DECLAN - make this get the file and show the download button
+        if msg.getHeader("message_type") == "file": # DAWSON 2/13/2023
+            d = datetime.datetime.now()
+            img = open(str(uuid.uuid4()) + ".tmp", 'wb')
+            img.write(base64.decodebytes(content[2:-1].encode('utf8')))
+            print(img.name)
+            image_message_widget(self.scrollable_frame, ASSETDIR+'\\'+USER1, msg.getHeader("username"), img.name, d).pack(anchor=tk.W)
+            img.close()
 
         # Message is a control message
         if msg.getHeader("message_type") == "control":
@@ -226,11 +254,33 @@ class App(tk.Tk):
         self.canvas.update()
         self.canvas.yview_moveto(1.0)
         image.close()
+        
+    def sendFileMessage(self, path): # DAWSON 2/13/2023
+
+        file = open(path, 'rb')
+        data = b''
+        for line in file.readlines():
+            data +=line
+        #Sends a message and adds it to the texts list
+        msg = self.entry_field.get()
+        ecmsg = Message()
+        ecmsg.setHeader('username', self.username)
+        ecmsg.setHeader('message_type', 'file')
+        ecmsg.setContent(str(base64.b64encode(data)))
+        self.conman.sendMessage(ecmsg) #TESTING BY DAWSON
+        self.entry_field.delete(0, tk.END)
+        d = datetime.datetime.now()
+        file_message_widget(self.scrollable_frame, ASSETDIR+'\\'+USER2, self.username, d).pack(anchor=tk.W)
+        self.canvas.update()
+        self.canvas.yview_moveto(1.0)
 
     def addAttachment(self):
         file_path = tkinter.filedialog.askopenfilename(initialdir = "/", title = "Attachment",filetypes = (("all files","*.*"),("Text files","*.txt*")))
         print(file_path)
-        self.sendImageMessage(file_path)
+        if (file_path[-3:] == "jpg" or file_path[-3:] == "png"):
+            self.sendImageMessage(file_path)
+        else:
+            self.sendFileMessage(file_path)
 
     def bindings(self):
         self.bind('<Return>', self.sendTextMessage)
