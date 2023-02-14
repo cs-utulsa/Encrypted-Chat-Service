@@ -36,7 +36,38 @@ class InputHandler():
         finally:
             self.value = None
             self.lock.release()
+            
+class fInput():
+    """
+    The fInput class is used for reading in and placing files. 
+    When a user sends a file, they will use a button on the GUI to start the process. 
+    Tkinter will aid in selecting the path of the file. 
+  
+    The fInput class will read in the file and save it as a string.
+    Then return the file object. 
+    
+    """
+    def __init__(self):
+        self.filename = None
 
+    def fReadFile(self, path):
+        try:
+            with open(path, "rb") as file:
+                self.filename = os.path.basename(path)
+                return file.read()
+        except:
+            return None
+
+    def getFileName(self):
+        return self.filename
+
+    def fCreateFile(self, file, path):
+        try:
+            with open(path + self.filename, "wb") as new_file:
+                new_file.write(file)
+            return True
+        except:
+            return False
 
 class Chat():
     """
