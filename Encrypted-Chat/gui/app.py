@@ -107,14 +107,14 @@ class App(tk.Tk):
     # Initialize ConnectionManager
     conman = None
 
-    # Initialization function passed the net.hconnection object that handles Hermes connection states 
+    # Initialization function passed the net.hconnection object that handles Hermes connection states
     def __init__(self):
         super().__init__()
-        
+
         # Setup ConnectionManager
         self.conman = ConnectionManager()
         self.username = "Dr_Wainwright"
-        
+
         self.style = ttk.Style("cyborg")
         self.style.configure('TButton', background=PRIMARY_COLOR, bordercolor=PRIMARY_COLOR, lightcolor=PRIMARY_COLOR, darkcolor=PRIMARY_COLOR)
         self.style.map('TButton', background=[('disabled',PRIMARY_COLOR), ('active',PRIMARY_COLOR)])
@@ -136,6 +136,16 @@ class App(tk.Tk):
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.running = True
 
+        # #Custom app window
+        # self.overrideredirect(True)  # removes ugly title bar (std app window)
+        # self.title_bar = tk.Frame(self, bg="darkgreen", relief="raised", bd=1) # creates window bar
+        # self.title_bar.pack(side=tk.TOP, expand=1, fill=tk.X)
+        # # self.iconbitmap(ASSETDIR + '\\icon.ico')
+        # self.title_label = tk.Label(self.title_bar, text=APPNAME, bg="darkgreen", fg="white") # adds app name
+        # self.title_label.pack(side=tk.LEFT, pady=2, padx=4)
+        # self.close_button = tk.Button(self.title_bar, text="X", command=self.on_closing)
+        # self.close_button.pack(side=tk.RIGHT, pady=2, padx=2, ipady=2, ipadx=2)
+
         #Class variables relating to server stuff
         self.connection = None
         self.target = None
@@ -154,7 +164,7 @@ class App(tk.Tk):
         self.quit()
         self.destroy()
 
-    def connect(self, target, port): 
+    def connect(self, target, port):
         # NOTE TO FUTURE SELF: RENAME THIS FUNCTION BECAUSE ITS USED IN SERVER CLASSES
         # Takes a target and port and determines whether you're client or server
         # This will be changed in this future. Just needed something quick for sprint 2
@@ -162,7 +172,7 @@ class App(tk.Tk):
         # Close existing connections
         if self.conman.isConnected():
             self.conman.close()
-        
+
         self.target = target
         self.port = int(port)
 
@@ -174,7 +184,7 @@ class App(tk.Tk):
             self.conman.createRoom(self.target, self.port)
         else:
             self.conman.connectToRoom(self.target, self.port)
-        
+
         thread = threading.Thread(target=self.listen)
         thread.start()
 
@@ -194,7 +204,7 @@ class App(tk.Tk):
         if msg.getHeader("message_type") == "message":
             d = datetime.datetime.now()
             message_widget(self.scrollable_frame, ASSETDIR+'\\'+USER1, msg.getHeader("username"), content, d).pack(anchor=tk.W)
-        
+
         # Message is an image
         if msg.getHeader("message_type") == "image":
             d = datetime.datetime.now()
@@ -203,7 +213,7 @@ class App(tk.Tk):
             print(img.name)
             image_message_widget(self.scrollable_frame, ASSETDIR+'\\'+USER1, msg.getHeader("username"), img.name, d).pack(anchor=tk.W)
             img.close()
-            
+
         # Message is a file - DECLAN - make this get the file and show the download button
         if msg.getHeader("message_type") == "file": # DAWSON 2/13/2023
             d = datetime.datetime.now()
@@ -254,7 +264,7 @@ class App(tk.Tk):
         self.canvas.update()
         self.canvas.yview_moveto(1.0)
         image.close()
-        
+
     def sendFileMessage(self, path): # DAWSON 2/13/2023
 
         file = open(path, 'rb')
@@ -280,10 +290,14 @@ class App(tk.Tk):
         if (file_path[-3:] == "jpg" or file_path[-3:] == "png"):
             self.sendImageMessage(file_path)
         else:
-            self.sendFileMessage(file_path)
+            self.sendImageMessage(file_path)
 
     def bindings(self):
         self.bind('<Return>', self.sendTextMessage)
+        # self.title_bar.bind("<B1-Motion>", self.move_app)
+
+    # def move_app(self, e):
+    #     self.geometry(f'+{e.x_root}+{e.y_root}')
 
     def create_widgets(self):
         #Settings frame is where the IP and port options are
