@@ -46,9 +46,9 @@ class EChatClient():
             try:
                 while True:
                     tmp_msg = Message()
-                    edata = sock.recv(4096)
+                    edata = sock.recv(4032)
                     data = self.encrypt_pair.decrypt(edata)
-                    #print(f'DECRYPT: {data}')
+                    print(f'DECRYPT: {data}')
                     tmp_msg.parseMsg(data)
                     total_content += tmp_msg.getContent()
                     if tmp_msg.getHeader('seg').split(':')[0] == tmp_msg.getHeader('seg').split(':')[1]:
@@ -57,6 +57,7 @@ class EChatClient():
                         break
             except Exception as e:
                 print("ReadAvailable ", e)
+                return None
             msg.setContent(total_content)
             return msg
         return None

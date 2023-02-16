@@ -91,8 +91,8 @@ class EChatServer:
                     while True:
                         try:
                             tmp_msg = Message()
-                            data = em.decrypt(socket.recv(4096))
-                            #print(f'DECRYPT: {data}')
+                            data = em.decrypt(socket.recv(4032))
+                            print(f'DECRYPT: {data}')
                             tmp_msg.parseMsg(data)
                             total_content += tmp_msg.getContent()
                             
@@ -107,6 +107,10 @@ class EChatServer:
                                 break
                         except Exception as e:
                             print("Server While loop error:", e)
+                            print("Client Error Disconnected")
+                            self.sockets.remove(socket)
+                            socket.close()
+                            continue
                     msg.setContent(total_content)
                     self.sendMsg(msg, exclusion=socket)
                     return msg

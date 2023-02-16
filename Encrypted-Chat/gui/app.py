@@ -208,7 +208,7 @@ class App(tk.Tk):
         # Message is an image
         if msg.getHeader("message_type") == "image":
             d = datetime.datetime.now()
-            img = open(str(uuid.uuid4()) + ".tmp", 'wb')
+            img = open(".\\tmp\\" + str(uuid.uuid4()) + ".tmp", 'wb')
             img.write(base64.decodebytes(content[2:-1].encode('utf8')))
             print(img.name)
             image_message_widget(self.scrollable_frame, ASSETDIR+'\\'+USER1, msg.getHeader("username"), img.name, d).pack(anchor=tk.W)
@@ -217,7 +217,7 @@ class App(tk.Tk):
         # Message is a file - DECLAN - make this get the file and show the download button
         if msg.getHeader("message_type") == "file": # DAWSON 2/13/2023
             d = datetime.datetime.now()
-            img = open(str(uuid.uuid4()) + ".tmp", 'wb')
+            img = open(".\\tmp\\" + str(uuid.uuid4()) + ".tmp", 'wb')
             img.write(base64.decodebytes(content[2:-1].encode('utf8')))
             print(img.name)
             image_message_widget(self.scrollable_frame, ASSETDIR+'\\'+USER1, msg.getHeader("username"), img.name, d).pack(anchor=tk.W)
