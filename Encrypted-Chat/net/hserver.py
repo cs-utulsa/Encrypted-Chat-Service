@@ -64,7 +64,7 @@ class EChatServer:
                     print(msg)
                     print(len(msg))
                     # This is because windows sockets are dumb and dont seperate packets if they arrive too fast
-                    time.sleep(0.0001)
+                    # time.sleep(0.0001)
                     socket.sendall(em.encrypt(msg.encode('utf8')))
 
     def readAvailable(self):
@@ -108,7 +108,7 @@ class EChatServer:
                         except Exception as e:
                             print("Server While loop error:", e)
                             print("Client Error Disconnected")
-                            self.sockets.remove(socket)
+                            self.read_sockets.remove(socket)
                             socket.close()
                             continue
                     msg.setContent(total_content)

@@ -84,7 +84,15 @@ class image_message_widget(tk.Frame):
 
 # Custom widget to show file msg
 class file_message_widget(tk.Frame): # DAWSON 2/13/2023
-    def __init__(self, parent, prof, username, datetime):
+    def dl_attachment(self, path):
+        dest_path = tkinter.filedialog.asksaveasfilename(initialfile=path.split('\\')[-1])
+        print("Write to dir: ", dest_path)
+        dest_file = open(dest_path, 'wb')
+        src_file = open(path, 'rb')
+        dest_file.write(src_file.read())
+        dest_file.close()
+        src_file.close()
+    def __init__(self, parent, prof, username, path, datetime):
         tk.Frame.__init__(self, parent)
         self.image = Image.open(prof).resize((50,50))
         self.prof = ImageTk.PhotoImage(self.image)
@@ -98,7 +106,7 @@ class file_message_widget(tk.Frame): # DAWSON 2/13/2023
         self.time_text = ttk.Label(self, text=f'[{datetime}'[:-10]+"]", font=("OCR", 10))
         self.time_text.grid(row=0, column=2, sticky="sw", padx=(5,0))
 
-        self.attachment_button = ttk.Button(self, text="Attachment", font=FONT)
+        self.attachment_button = ttk.Button(self, text="Attachment", command=lambda: self.dl_attachment(path))
         self.attachment_button.grid(row=1, column=1, rowspan=2, columnspan=2, sticky="nw", padx=(10,0), pady=(0,15))
 
 # The entire App class
@@ -217,11 +225,11 @@ class App(tk.Tk):
         # Message is a file - DECLAN - make this get the file and show the download button
         if msg.getHeader("message_type") == "file": # DAWSON 2/13/2023
             d = datetime.datetime.now()
-            img = open(".\\tmp\\" + str(uuid.uuid4()) + ".tmp", 'wb')
-            img.write(base64.decodebytes(content[2:-1].encode('utf8')))
-            print(img.name)
-            image_message_widget(self.scrollable_frame, ASSETDIR+'\\'+USER1, msg.getHeader("username"), img.name, d).pack(anchor=tk.W)
-            img.close()
+            file = open(".\\tmp\\" + str(uuid.uuid4()) + "." + msg.getHeader("ext"), 'wb')
+            file.write(base64.decodebytes(content[2:-1].encode('utf8')))
+            print(file.name)
+            file_message_widget(self.scrollable_frame, ASSETDIR+'\\'+USER1, msg.getHeader("username"), file.name, d).pack(anchor=tk.W)
+            file.close()
 
         # Message is a control message
         if msg.getHeader("message_type") == "control":
@@ -276,11 +284,12 @@ class App(tk.Tk):
         ecmsg = Message()
         ecmsg.setHeader('username', self.username)
         ecmsg.setHeader('message_type', 'file')
+        ecmsg.setHeader('ext', file.name.split('.')[1])
         ecmsg.setContent(str(base64.b64encode(data)))
         self.conman.sendMessage(ecmsg) #TESTING BY DAWSON
         self.entry_field.delete(0, tk.END)
         d = datetime.datetime.now()
-        file_message_widget(self.scrollable_frame, ASSETDIR+'\\'+USER2, self.username, d).pack(anchor=tk.W)
+        file_message_widget(self.scrollable_frame, ASSETDIR+'\\'+USER2, self.username, file.name,d).pack(anchor=tk.W)
         self.canvas.update()
         self.canvas.yview_moveto(1.0)
 
@@ -290,7 +299,7 @@ class App(tk.Tk):
         if (file_path[-3:] == "jpg" or file_path[-3:] == "png"):
             self.sendImageMessage(file_path)
         else:
-            self.sendImageMessage(file_path)
+            self.sendFileMessage(file_path)
 
     def bindings(self):
         self.bind('<Return>', self.sendTextMessage)
