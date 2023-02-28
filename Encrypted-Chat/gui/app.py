@@ -12,6 +12,7 @@ import tempfile
 import base64
 from PIL import Image, ImageTk
 import uuid
+from ctypes import windll
 
 # Hermes imports
 from net.message import Message
@@ -29,6 +30,11 @@ X_PADDING = 15
 Y_PADDING = 10
 FONT = ("OCRB", 12)
 PRIMARY_COLOR = '#57B400'
+
+#Custom Window constants
+GWL_EXSTYLE = -20
+WS_EX_APPWINDOW = 0x00040000
+WS_EX_TOOLWINDOW = 0x00000080
 
 #Random Constants
 SERVER = 0
@@ -136,21 +142,24 @@ class App(tk.Tk):
         self.style.map('TButton', bordercolor=[('disabled','gray'), ('active','gray')])
         self.style.map('TButton', darkcolor=[('disabled','gray'), ('active','gray')])
 
-        #Defining some app information
-        self.title(APPNAME)
-        self.geometry('960x540')
-        self.resizable(False, False)
-        self.iconbitmap(ASSETDIR+'\\icon.ico')
-        self.protocol("WM_DELETE_WINDOW", self.on_closing)
-        self.running = True
+        # #Defining some app information
+        # self.title(APPNAME)
+        # self.geometry('960x540')
+        # self.resizable(False, False)
+        # self.iconbitmap(ASSETDIR+'\\icon.ico')
+        # self.protocol("WM_DELETE_WINDOW", self.on_closing)
+        # self.running = True
 
-        # #Custom app window
-        # self.overrideredirect(True)  # removes ugly title bar (std app window)
-        # self.title_bar = tk.Frame(self, bg="darkgreen", relief="raised", bd=1) # creates window bar
-        # self.title_bar.pack(side=tk.TOP, expand=1, fill=tk.X)
-        # # self.iconbitmap(ASSETDIR + '\\icon.ico')
-        # self.title_label = tk.Label(self.title_bar, text=APPNAME, bg="darkgreen", fg="white") # adds app name
-        # self.title_label.pack(side=tk.LEFT, pady=2, padx=4)
+        #Custom app window
+        self.wm_title("Hermes Test")
+        self.overrideredirect(True)  # removes ugly title bar (std app window)
+        self.title_bar = tk.Frame(self, bg="White", relief="raised", bd=3) # creates window bar
+        self.title_bar.pack(side=tk.TOP, expand=1, fill=tk.X)
+        button = ttk.Button(self.title_bar, text="Exit", command=self.on_closing)
+        button.pack(side=tk.RIGHT)
+        # self.iconbitmap(ASSETDIR + '\\icon.ico')
+        self.title_label = tk.Label(self.title_bar, text=APPNAME) # adds app name
+        self.title_label.pack(side=tk.LEFT, pady=2, padx=4)
         # self.close_button = tk.Button(self.title_bar, text="X", command=self.on_closing)
         # self.close_button.pack(side=tk.RIGHT, pady=2, padx=2, ipady=2, ipadx=2)
 
@@ -303,10 +312,20 @@ class App(tk.Tk):
 
     def bindings(self):
         self.bind('<Return>', self.sendTextMessage)
-        # self.title_bar.bind("<B1-Motion>", self.move_app)
+        self.title_bar.bind("<B1-Motion>", self.move_app)
 
-    # def move_app(self, e):
-    #     self.geometry(f'+{e.x_root}+{e.y_root}')
+    def move_app(self, e):
+        self.geometry(f'+{e.x_root}+{e.y_root}')
+
+    def set_appwindow(self):
+        hwnd = windll.user32.GetParent(self.winfo_id())
+        style = windll.user32.GetWindowLongPtrW(hwnd, GWL_EXSTYLE)
+        style = style & ~WS_EX_TOOLWINDOW
+        style = style | WS_EX_APPWINDOW
+        res = windll.user32.SetWindowLongPtrW(hwnd, GWL_EXSTYLE, style)
+        # re-assert the new window style
+        self.withdraw()
+        self.after(10, self.deiconify)
 
     def create_widgets(self):
         #Settings frame is where the IP and port options are
