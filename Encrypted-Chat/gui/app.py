@@ -310,6 +310,58 @@ class App(tk.Tk):
         else:
             self.sendFileMessage(file_path)
 
+    def settings(self):
+        top = ttk.Toplevel()
+        top.title(APPNAME)
+        top.iconbitmap(ASSETDIR+'\\icon.ico')
+        top.resizable(False, False)
+        
+        settings_label = ttk.Label(top, text="Settings", font=("OCBR", 22))
+        settings_label.pack(pady=Y_PADDING)
+        
+        username_frame = ttk.Frame(top)
+        username_frame.pack(padx=X_PADDING, pady=Y_PADDING, fill=tk.X, expand=tk.YES)
+        username_label = ttk.Label(username_frame, text="Username", font=FONT, width=15)
+        username_label.pack(side=tk.LEFT, padx=(0,X_PADDING), pady=Y_PADDING)
+        username_entry = ttk.Entry(username_frame, font=FONT)
+        username_entry.insert(0, self.username)
+        username_entry.pack(side=tk.RIGHT, fill=tk.X, expand=tk.YES)
+        
+        theme_frame = ttk.Frame(top)
+        theme_frame.pack(padx=X_PADDING, pady=(0,Y_PADDING), fill=tk.X, expand=tk.YES)
+        theme_label = ttk.Label(theme_frame, text="Theme", font=FONT, width=15)
+        theme_label.pack(side=tk.LEFT, padx=(0,X_PADDING))
+        style = ttk.Style()
+        theme_names = style.theme_names()
+        theme_cbo = ttk.Combobox(
+            master=theme_frame,
+            text=style.theme.name,
+            values=theme_names,
+            font=FONT,
+        )
+        theme_cbo.pack(side=tk.RIGHT, fill=tk.X, expand=tk.YES)
+        theme_cbo.current(theme_names.index(style.theme.name))
+        def change_theme(e):
+            t = theme_cbo.get()
+            self.style.theme_use(t)
+            theme_cbo.selection_clear()
+        theme_cbo.bind("<<ComboboxSelected>>", change_theme)
+        
+        prof_frame = ttk.Frame(top)
+        prof_frame.pack(padx=X_PADDING, pady=(0,Y_PADDING), fill=tk.X, expand=tk.YES)
+        prof_label = ttk.Label(prof_frame, text="Photo", font=FONT, width=15)
+        prof_label.pack(side=tk.LEFT, padx=(0,X_PADDING))
+        prof_button = ttk.Button(prof_frame, text="Select")
+        prof_button.pack(side=tk.RIGHT, fill=tk.X, expand=tk.YES)
+        
+        # img_frame = ttk.Frame(top)
+        # img_frame.pack(padx=X_PADDING, fill=tk.X, expand=tk.YES)
+        # pic = Image.open(ASSETDIR+'\\'+USER1)
+        # # pic = pic.resize(50,50)
+        # pic = ImageTk.PhotoImage(pic)
+        # pic_label = ttk.Label(img_frame, image=pic)
+        # pic_label.pack(expand=tk.YES, fill=tk.BOTH)
+
     def bindings(self):
         self.bind('<Return>', self.sendTextMessage)
         self.title_bar.bind("<B1-Motion>", self.move_app)
@@ -368,12 +420,14 @@ class App(tk.Tk):
 
         #Send frame is where you enter and send texts
         send_frame = ttk.Frame()
+        settings_button = ttk.Button(send_frame, text="Settings", command=lambda: self.settings())
+        settings_button.pack(side=tk.LEFT, padx=(0,X_PADDING))
         my_msg = tk.StringVar()
         self.entry_field = ttk.Entry(send_frame, textvariable=my_msg, font=FONT)
         self.entry_field.pack(padx=(0,X_PADDING), side=tk.LEFT, fill=tk.X, expand=tk.TRUE)
         send_button = ttk.Button(send_frame, text="Send", command=lambda: self.sendTextMessage())
         send_button.pack(side=tk.RIGHT)
-        attach_button = ttk.Button(send_frame, text="Attach File", style='Gray.TButton', command=self.addAttachment)
+        attach_button = ttk.Button(send_frame, text="Attach File", command=self.addAttachment)
         attach_button.pack(side=tk.RIGHT, padx=(0,X_PADDING))
         send_frame.pack(padx=X_PADDING, pady=Y_PADDING, fill=tk.X)
 
