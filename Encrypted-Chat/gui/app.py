@@ -35,6 +35,8 @@ PRIMARY_COLOR = '#57B400'
 GWL_EXSTYLE = -20
 WS_EX_APPWINDOW = 0x00040000
 WS_EX_TOOLWINDOW = 0x00000080
+xwin = 0
+ywin = 0
 
 #Random Constants
 SERVER = 0
@@ -142,26 +144,17 @@ class App(tk.Tk):
         self.style.map('TButton', bordercolor=[('disabled','gray'), ('active','gray')])
         self.style.map('TButton', darkcolor=[('disabled','gray'), ('active','gray')])
 
-        # #Defining some app information
-        # self.title(APPNAME)
-        # self.geometry('960x540')
-        # self.resizable(False, False)
-        # self.iconbitmap(ASSETDIR+'\\icon.ico')
-        # self.protocol("WM_DELETE_WINDOW", self.on_closing)
-        # self.running = True
-
         #Custom app window
-        self.wm_title("Hermes Test")
-        self.overrideredirect(True)  # removes ugly title bar (std app window)
-        self.title_bar = tk.Frame(self, bg="White", relief="raised", bd=3) # creates window bar
-        self.title_bar.pack(side=tk.TOP, expand=1, fill=tk.X)
-        button = ttk.Button(self.title_bar, text="Exit", command=self.on_closing)
-        button.pack(side=tk.RIGHT)
-        # self.iconbitmap(ASSETDIR + '\\icon.ico')
-        self.title_label = tk.Label(self.title_bar, text=APPNAME) # adds app name
-        self.title_label.pack(side=tk.LEFT, pady=2, padx=4)
-        # self.close_button = tk.Button(self.title_bar, text="X", command=self.on_closing)
-        # self.close_button.pack(side=tk.RIGHT, pady=2, padx=2, ipady=2, ipadx=2)
+        self.running = True
+        self.overrideredirect(True)  # turns off default Windows titlebar
+
+        self.title_bar = tk.Frame(self, bg="White", relief="raised", bd=3) # creates frame for new titlebar
+        self.close_button = ttk.Button(self.title_bar, text=" X ", style="Cl.TButton", command=self.on_closing) # make closing button
+        title_name = tk.Label(self.title_bar, text=APPNAME, bg=PRIMARY_COLOR, fg="white") # make window title
+
+        self.title_bar.pack(side=tk.TOP, expand=True, fill=tk.X) # packing elements into main GUI window
+        self.close_button.pack(side=tk.RIGHT)
+        title_name.pack(side=tk.LEFT)
 
         #Class variables relating to server stuff
         self.connection = None
@@ -315,10 +308,10 @@ class App(tk.Tk):
         top.title(APPNAME)
         top.iconbitmap(ASSETDIR+'\\icon.ico')
         top.resizable(False, False)
-        
+
         settings_label = ttk.Label(top, text="Settings", font=("OCBR", 22))
         settings_label.pack(pady=Y_PADDING)
-        
+
         username_frame = ttk.Frame(top)
         username_frame.pack(padx=X_PADDING, pady=Y_PADDING, fill=tk.X, expand=tk.YES)
         username_label = ttk.Label(username_frame, text="Username", font=FONT, width=15)
@@ -326,7 +319,7 @@ class App(tk.Tk):
         username_entry = ttk.Entry(username_frame, font=FONT)
         username_entry.insert(0, self.username)
         username_entry.pack(side=tk.RIGHT, fill=tk.X, expand=tk.YES)
-        
+
         theme_frame = ttk.Frame(top)
         theme_frame.pack(padx=X_PADDING, pady=(0,Y_PADDING), fill=tk.X, expand=tk.YES)
         theme_label = ttk.Label(theme_frame, text="Theme", font=FONT, width=15)
@@ -346,14 +339,14 @@ class App(tk.Tk):
             self.style.theme_use(t)
             theme_cbo.selection_clear()
         theme_cbo.bind("<<ComboboxSelected>>", change_theme)
-        
+
         prof_frame = ttk.Frame(top)
         prof_frame.pack(padx=X_PADDING, pady=(0,Y_PADDING), fill=tk.X, expand=tk.YES)
         prof_label = ttk.Label(prof_frame, text="Photo", font=FONT, width=15)
         prof_label.pack(side=tk.LEFT, padx=(0,X_PADDING))
         prof_button = ttk.Button(prof_frame, text="Select")
         prof_button.pack(side=tk.RIGHT, fill=tk.X, expand=tk.YES)
-        
+
         # img_frame = ttk.Frame(top)
         # img_frame.pack(padx=X_PADDING, fill=tk.X, expand=tk.YES)
         # pic = Image.open(ASSETDIR+'\\'+USER1)
@@ -364,20 +357,19 @@ class App(tk.Tk):
 
     def bindings(self):
         self.bind('<Return>', self.sendTextMessage)
-        self.title_bar.bind("<B1-Motion>", self.move_app)
+        self.title_bar.bind('<B1-Motion>', self.move_app)
+        self.title_bar.bind('<Button-1>', self.get_pos)
+
+    def get_pos(self, e):
+        """Gets current position of cursor within the window"""
+        global xwin
+        global ywin
+        xwin = e.x
+        ywin = e.y
 
     def move_app(self, e):
-        self.geometry(f'+{e.x_root}+{e.y_root}')
-
-    def set_appwindow(self):
-        hwnd = windll.user32.GetParent(self.winfo_id())
-        style = windll.user32.GetWindowLongPtrW(hwnd, GWL_EXSTYLE)
-        style = style & ~WS_EX_TOOLWINDOW
-        style = style | WS_EX_APPWINDOW
-        res = windll.user32.SetWindowLongPtrW(hwnd, GWL_EXSTYLE, style)
-        # re-assert the new window style
-        self.withdraw()
-        self.after(10, self.deiconify)
+        """Enables ability to move window around screen"""
+        self.geometry(f'+{e.x_root - xwin}+{e.y_root - ywin}')
 
     def create_widgets(self):
         #Settings frame is where the IP and port options are
