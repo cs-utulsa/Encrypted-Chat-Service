@@ -24,6 +24,7 @@ from net.connection_manager import ConnectionManager
 # Gets this scripts current directory and then traverses up one
 NATIVEDIR = os.path.dirname(os.path.abspath(__file__)) + "\\..\\"
 ASSETDIR = os.path.join(NATIVEDIR, "assets")
+GUIDIR = os.path.join(NATIVEDIR, "gui")
 
 #App graphics constants
 APPNAME = "Hermes"
@@ -64,7 +65,6 @@ class message_widget(tk.Frame):
 
         self.msg_text = ttk.Label(self, text=msg, font=FONT, wraplength=800)
         self.msg_text.grid(row=1, column=1, rowspan=2, columnspan=2, sticky="nw", padx=(10,0), pady=(0,15))
-
 
 # Custom widget to show image msg
 class image_message_widget(tk.Frame):
@@ -130,32 +130,12 @@ class App(tk.Tk):
 
         # Setup ConnectionManager
         self.conman = ConnectionManager()
-        self.username = "Dr_Wainwright"
-
-        self.style = ttk.Style("cyborg")
-        self.style.configure('TButton', background=PRIMARY_COLOR, bordercolor=PRIMARY_COLOR, lightcolor=PRIMARY_COLOR, darkcolor=PRIMARY_COLOR)
-        self.style.map('TButton', background=[('disabled',PRIMARY_COLOR), ('active',PRIMARY_COLOR)])
-        self.style.map('TButton', lightcolor=[('disabled',PRIMARY_COLOR), ('active',PRIMARY_COLOR)])
-        self.style.map('TButton', bordercolor=[('disabled',PRIMARY_COLOR), ('active',PRIMARY_COLOR)])
-        self.style.map('TButton', darkcolor=[('disabled',PRIMARY_COLOR), ('active',PRIMARY_COLOR)])
-
-        self.style.configure("Gray.TButton",background='gray',bordercolor='gray',lightcolor='gray',darkcolor='gray')
-        self.style.map('TButton', background=[('disabled','gray'), ('active','gray')])
-        self.style.map('TButton', lightcolor=[('disabled','gray'), ('active','gray')])
-        self.style.map('TButton', bordercolor=[('disabled','gray'), ('active','gray')])
-        self.style.map('TButton', darkcolor=[('disabled','gray'), ('active','gray')])
+        self.configs = {"username" : "Dr. Wainwright", "style" : "cyborg", "prof" : "prof1.jpg"}
+        self.prof_pic_name = "prof1.jpg"
 
         #Custom app window
         self.running = True
         self.overrideredirect(True)  # turns off default Windows titlebar
-
-        self.title_bar = tk.Frame(self, bg="White", relief="raised", bd=3) # creates frame for new titlebar
-        self.close_button = ttk.Button(self.title_bar, text=" X ", style="Cl.TButton", command=self.on_closing) # make closing button
-        title_name = tk.Label(self.title_bar, text=APPNAME, bg=PRIMARY_COLOR, fg="white") # make window title
-
-        self.title_bar.pack(side=tk.TOP, expand=True, fill=tk.X) # packing elements into main GUI window
-        self.close_button.pack(side=tk.RIGHT)
-        title_name.pack(side=tk.LEFT)
 
         #Class variables relating to server stuff
         self.connection = None
@@ -164,8 +144,9 @@ class App(tk.Tk):
         self.messages = []
 
         #Creates the GUI
-        self.bindings()
+        self.set_config()
         self.create_widgets()
+        self.bindings()
 
     def on_closing(self):
         #Kills the app when the 'x' is pressed
@@ -332,7 +313,7 @@ class App(tk.Tk):
             label.bind("<Button-1>")
             #label.bind("<Button-1>", lambda event: self.settings())
             my_col += 1
-
+       
     def settings(self):
         top = ttk.Toplevel()
         top.title(APPNAME)
@@ -374,16 +355,60 @@ class App(tk.Tk):
         prof_frame.pack(padx=X_PADDING, pady=(0,Y_PADDING), fill=tk.X, expand=tk.YES)
         prof_label = ttk.Label(prof_frame, text="Photo", font=FONT, width=15)
         prof_label.pack(side=tk.LEFT, padx=(0,X_PADDING))
-        prof_button = ttk.Button(prof_frame, text="Select")
+        prof_button = ttk.Button(prof_frame, text="Select", command=self.get_prof_pic)
         prof_button.pack(side=tk.RIGHT, fill=tk.X, expand=tk.YES)
 
-        # img_frame = ttk.Frame(top)
-        # img_frame.pack(padx=X_PADDING, fill=tk.X, expand=tk.YES)
-        # pic = Image.open(ASSETDIR+'\\'+USER1)
-        # # pic = pic.resize(50,50)
-        # pic = ImageTk.PhotoImage(pic)
-        # pic_label = ttk.Label(img_frame, image=pic)
-        # pic_label.pack(expand=tk.YES, fill=tk.BOTH)
+        img_frame = ttk.Frame(top)
+        img_frame.pack(side=tk.RIGHT, padx=X_PADDING, fill=tk.X, expand=tk.YES)
+        pic = Image.open(ASSETDIR+'\\'+self.prof)
+        pic = pic.resize((205,205))
+        self.pic1 = ImageTk.PhotoImage(pic)
+        pic_label = ttk.Label(img_frame, image=self.pic1)
+        pic_label.pack(side=tk.RIGHT, pady=(0,Y_PADDING))
+        
+        save_frame = ttk.Frame(top)
+        save_frame.pack(side=tk.BOTTOM, padx=X_PADDING, pady=Y_PADDING)
+        save_but = ttk.Button(save_frame, text="Save", command=lambda: self.save_config(username_entry.get(), theme_cbo.get()))
+        save_but.pack()
+
+    def get_prof_pic(self):
+        path = tkinter.filedialog.askopenfilename(initialdir = ASSETDIR, title = "Attachment").split('/')
+        self.prof_pic_name = path[-1]
+
+    def save_config(self, username, style):
+       f = open(GUIDIR+'\\'+"config.txt","w")
+       f.write(username+'\n')
+       f.write(style+'\n')
+       f.write(self.prof_pic_name)
+       f.close()
+       self.set_config()
+
+    def set_config(self):
+        with open(GUIDIR+'\\'+'config.txt') as f:
+            lines = [ line.strip() for line in f ]
+        
+        if len(lines) == 3:
+            self.configs["username"] = lines[0]
+            self.configs["style"] = lines[1]
+            self.configs["prof"] = lines[2]
+        
+        self.username = self.configs["username"]
+        self.style = self.configs["style"]
+        self.prof = self.configs["prof"]
+        
+        self.style = ttk.Style(self.configs["style"])
+        if self.configs["style"] == "cyborg": #custom Hermes theme
+            self.style.configure('TButton', background=PRIMARY_COLOR, bordercolor=PRIMARY_COLOR, lightcolor=PRIMARY_COLOR, darkcolor=PRIMARY_COLOR)
+            self.style.map('TButton', background=[('disabled',PRIMARY_COLOR), ('active',PRIMARY_COLOR)])
+            self.style.map('TButton', lightcolor=[('disabled',PRIMARY_COLOR), ('active',PRIMARY_COLOR)])
+            self.style.map('TButton', bordercolor=[('disabled',PRIMARY_COLOR), ('active',PRIMARY_COLOR)])
+            self.style.map('TButton', darkcolor=[('disabled',PRIMARY_COLOR), ('active',PRIMARY_COLOR)])
+
+        self.style.configure("Gray.TButton",background='gray',bordercolor='gray',lightcolor='gray',darkcolor='gray')
+        self.style.map('TButton', background=[('disabled','gray'), ('active','gray')])
+        self.style.map('TButton', lightcolor=[('disabled','gray'), ('active','gray')])
+        self.style.map('TButton', bordercolor=[('disabled','gray'), ('active','gray')])
+        self.style.map('TButton', darkcolor=[('disabled','gray'), ('active','gray')])
 
     def bindings(self):
         self.bind('<Return>', self.sendTextMessage)
@@ -402,14 +427,27 @@ class App(tk.Tk):
         self.geometry(f'+{e.x_root - xwin}+{e.y_root - ywin}')
 
     def create_widgets(self):
+        #Custom title bar frame
+        self.title_bar = tk.Frame(self) # creates frame for new titlebar
+        self.title_bar.pack(side=tk.TOP, expand=True, fill=tk.X) # packing elements into main GUI window
+        close_button = ttk.Button(self.title_bar, text=" X ", style="Cl.TButton", command=self.on_closing) # make closing button
+        close_button.pack(side=tk.RIGHT)
+        image = Image.open(ASSETDIR+'\\icon.png')
+        img = image.resize((int(512/21), int(512/21)))
+        self.my_img = ImageTk.PhotoImage(img)
+        label = ttk.Label(self.title_bar, image=self.my_img)
+        label.pack(side=tk.LEFT, padx=(X_PADDING,0))
+        title_name = tk.Label(self.title_bar, text=APPNAME) # make window title
+        title_name.pack(side=tk.LEFT, padx=(0,X_PADDING), pady=Y_PADDING)
+        
         #Settings frame is where the IP and port options are
         settings_frame = tk.Frame(highlightbackground="gray", highlightthickness=2)
         settings_frame.pack(side=tk.TOP, fill=tk.X, padx=X_PADDING, pady=Y_PADDING)
-        image = Image.open(ASSETDIR+'\\full_logo.png')
-        img = image.resize((int(1920/16), int(1080/16)))
-        self.my_img = ImageTk.PhotoImage(img)
-        label = ttk.Label(settings_frame, image=self.my_img)
-        label.pack(side=tk.LEFT, padx=(0,100))
+        image = Image.open(ASSETDIR+'\\icon.png')
+        img = image.resize((int(1080/16), int(1080/16)))
+        self.my_img1 = ImageTk.PhotoImage(img)
+        label = ttk.Label(settings_frame, image=self.my_img1)
+        label.pack(side=tk.LEFT, padx=X_PADDING)
         target = tk.StringVar()
         port = tk.StringVar()
         target_label = ttk.Label(settings_frame, text="Target IP:", font=FONT)
