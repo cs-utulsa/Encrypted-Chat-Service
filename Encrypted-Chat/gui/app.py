@@ -421,7 +421,7 @@ class App(tk.Tk):
         port_entry = ttk.Entry(settings_frame, textvariable=port, font=FONT)
         port_entry.pack(side=tk.LEFT, padx=(0,X_PADDING))
         connect_button = ttk.Button(settings_frame, text="Connect", command=lambda: self.connect(target_entry.get(), port_entry.get()))
-        connect_button.pack(side=tk.LEFT)
+        connect_button.pack(side=tk.LEFT, padx=(0,X_PADDING))
 
         #Texts frame is where all the texts are displayed
         texts_frame = ttk.Frame()
