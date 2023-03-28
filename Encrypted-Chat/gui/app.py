@@ -233,7 +233,7 @@ class App(tk.Tk):
         self.conman.sendMessage(ecmsg) #TESTING BY DAWSON
         self.entry_field.delete(0, tk.END)
         d = datetime.datetime.now()
-        message_widget(self.scrollable_frame, ASSETDIR+'\\'+USER2, self.username, msg, d).pack(anchor=tk.W)
+        message_widget(self.scrollable_frame, ASSETDIR+'\\'+self.prof, self.username, msg, d).pack(anchor=tk.W)
         self.canvas.update()
         self.canvas.yview_moveto(1.0)
 
@@ -252,7 +252,7 @@ class App(tk.Tk):
         self.conman.sendMessage(ecmsg) #TESTING BY DAWSON
         self.entry_field.delete(0, tk.END)
         d = datetime.datetime.now()
-        image_message_widget(self.scrollable_frame, ASSETDIR+'\\'+USER2, self.username, image.name, d).pack(anchor=tk.W)
+        image_message_widget(self.scrollable_frame, ASSETDIR+'\\'+self.prof, self.username, image.name, d).pack(anchor=tk.W)
         self.canvas.update()
         self.canvas.yview_moveto(1.0)
         image.close()
@@ -273,7 +273,7 @@ class App(tk.Tk):
         self.conman.sendMessage(ecmsg) #TESTING BY DAWSON
         self.entry_field.delete(0, tk.END)
         d = datetime.datetime.now()
-        file_message_widget(self.scrollable_frame, ASSETDIR+'\\'+USER2, self.username, file.name,d).pack(anchor=tk.W)
+        file_message_widget(self.scrollable_frame, ASSETDIR+'\\'+self.prof, self.username, file.name,d).pack(anchor=tk.W)
         self.canvas.update()
         self.canvas.yview_moveto(1.0)
 
