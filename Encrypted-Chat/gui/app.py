@@ -285,35 +285,43 @@ class App(tk.Tk):
         else:
             self.sendFileMessage(file_path)
 
+    global count
+    count = 1
     def addEmoji(self):
-        emopage = ttk.Toplevel()
-        emopage.title(APPNAME)
-        emopage.iconbitmap(ASSETDIR+'\\icon.ico')
-        
-        settings_label = ttk.Label(emopage, text="Insert Emoji", font=("OCBR", 20))
-        settings_label.pack(pady=Y_PADDING)
+        global count
+        if count < 2:
+            emopage = ttk.Toplevel()
+            emopage.title(APPNAME)
+            emopage.iconbitmap(ASSETDIR+'\\icon.ico')
+            
+            settings_label = ttk.Label(emopage, text="Insert Emoji", font=("OCBR", 20))
+            settings_label.pack(pady=Y_PADDING)
 
-        allEmoji = ["\U0001F603", "\U0001F602", "\U0001F609", "\U0001F970", "\U0001F618",
-                    "\U0001F914", "\U0001F92B", "\U0001F644", "\U0001F634", "\U0001F922",
-                    "\U0001F975", "\U0001F976", "\U00002639", "\U0001F44D", "\U0001F44E"]
-        
-        my_font = Font(family="Segoe UI Emoji", size = 25)
+            allEmoji = ["\U0001F603", "\U0001F602", "\U0001F609", "\U0001F970", "\U0001F618",
+                        "\U0001F914", "\U0001F92B", "\U0001F644", "\U0001F634", "\U0001F922",
+                        "\U0001F975", "\U0001F976", "\U00002639", "\U0001F44D", "\U0001F44E"]
+            
+            my_font = Font(family="Segoe UI Emoji", size = 25)
 
-        emojiFrame = ttk.Frame(emopage)
-        emojiFrame.pack(padx=10, pady=10)
+            emojiFrame = ttk.Frame(emopage)
+            emojiFrame.pack(padx=10, pady=10)
+            
+            my_row = -1
+            my_col = 0
+            for emo in range(0,len(allEmoji)):
+                if((emo % 5)==0):
+                    my_row += 1
+                    my_col = 0
+                label = ttk.Label(emojiFrame, text=allEmoji[emo], font=my_font)
+                label.grid(row=my_row, column=my_col, padx=5, pady=5)
+                label.bind("<Button-1>")
+                #label.bind("<Button-1>", lambda event: self.settings())
+                my_col += 1
+            count += 1
+        else:
+            tkinter.messagebox.showinfo(title="Error", message="You already opened emoji Menu")
+        emopage.bind('<Escape>', lambda event: emopage.destroy())
         
-        my_row = -1
-        my_col = 0
-        for emo in range(0,len(allEmoji)):
-            if((emo % 5)==0):
-                my_row += 1
-                my_col = 0
-            label = ttk.Label(emojiFrame, text=allEmoji[emo], font=my_font)
-            label.grid(row=my_row, column=my_col, padx=5, pady=5)
-            label.bind("<Button-1>")
-            #label.bind("<Button-1>", lambda event: self.settings())
-            my_col += 1
-       
     def settings(self):
         top = ttk.Toplevel()
         top.title(APPNAME)
