@@ -320,9 +320,11 @@ class App(tk.Tk):
         top.iconbitmap(ASSETDIR+'\\icon.ico')
         top.resizable(False, False)
 
+        # Title of the window
         settings_label = ttk.Label(top, text="Settings", font=("OCBR", 22))
         settings_label.pack(pady=Y_PADDING)
 
+        # Username selection
         username_frame = ttk.Frame(top)
         username_frame.pack(padx=X_PADDING, pady=Y_PADDING, fill=tk.X, expand=tk.YES)
         username_label = ttk.Label(username_frame, text="Username", font=FONT, width=15)
@@ -331,6 +333,7 @@ class App(tk.Tk):
         username_entry.insert(0, self.username)
         username_entry.pack(side=tk.RIGHT, fill=tk.X, expand=tk.YES)
 
+        # Theme frame and combobox
         theme_frame = ttk.Frame(top)
         theme_frame.pack(padx=X_PADDING, pady=(0,Y_PADDING), fill=tk.X, expand=tk.YES)
         theme_label = ttk.Label(theme_frame, text="Theme", font=FONT, width=15)
@@ -351,6 +354,7 @@ class App(tk.Tk):
             theme_cbo.selection_clear()
         theme_cbo.bind("<<ComboboxSelected>>", change_theme)
 
+        # profile picture selection
         prof_frame = ttk.Frame(top)
         prof_frame.pack(padx=X_PADDING, pady=(0,Y_PADDING), fill=tk.X, expand=tk.YES)
         prof_label = ttk.Label(prof_frame, text="Photo", font=FONT, width=15)
@@ -358,6 +362,7 @@ class App(tk.Tk):
         prof_button = ttk.Button(prof_frame, text="Select", command=self.get_prof_pic)
         prof_button.pack(side=tk.RIGHT, fill=tk.X, expand=tk.YES)
 
+        # current profile picture
         img_frame = ttk.Frame(top)
         img_frame.pack(side=tk.RIGHT, padx=X_PADDING, fill=tk.X, expand=tk.YES)
         pic = Image.open(ASSETDIR+'\\'+self.prof)
@@ -366,16 +371,19 @@ class App(tk.Tk):
         pic_label = ttk.Label(img_frame, image=self.pic1)
         pic_label.pack(side=tk.RIGHT, pady=(0,Y_PADDING))
         
+        # Saves settings. Could definitely look better
         save_frame = ttk.Frame(top)
         save_frame.pack(side=tk.BOTTOM, padx=X_PADDING, pady=Y_PADDING)
-        save_but = ttk.Button(save_frame, text="Save", command=lambda: self.save_config(username_entry.get(), theme_cbo.get()))
+        save_but = ttk.Button(save_frame, text="Apply", command=lambda: self.save_config(username_entry.get(), theme_cbo.get()))
         save_but.pack()
 
     def get_prof_pic(self):
-        path = tkinter.filedialog.askopenfilename(initialdir = ASSETDIR, title = "Attachment").split('/')
+        # Lets you choose a profile picture. Gets just the name of the file in the assets folder
+        path = tkinter.filedialog.askopenfilename(initialdir = ASSETDIR, title = "Profile Picture", filetypes=[("Images", ".png .jpg")]).split('/')
         self.prof_pic_name = path[-1]
 
-    def save_config(self, username, style):
+    def save_config(self, username, style): 
+        # saves thee current configurations to the config file
        f = open(GUIDIR+'\\'+"config.txt","w")
        f.write(username+'\n')
        f.write(style+'\n')
@@ -384,6 +392,7 @@ class App(tk.Tk):
        self.set_config()
 
     def set_config(self):
+        # Gets the configs from the config file and applies it
         with open(GUIDIR+'\\'+'config.txt') as f:
             lines = [ line.strip() for line in f ]
         
