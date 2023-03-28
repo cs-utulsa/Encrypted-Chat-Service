@@ -14,6 +14,7 @@ import base64
 from PIL import Image, ImageTk
 import uuid
 from ctypes import windll
+import re
 
 # Hermes imports
 from net.message import Message
@@ -194,6 +195,9 @@ class App(tk.Tk):
         content = msg.getContent()
         # Message is a basic text message
         if msg.getHeader("message_type") == "message":
+            # Scanning for emojis
+            if (re.search("(^:(1F|2))([0-9]{3}|[0-9]{2}[B-E]{1})(:$)", msg) != None):
+                None  # call replacing mthd
             d = datetime.datetime.now()
             message_widget(self.scrollable_frame, ASSETDIR+'\\'+USER1, msg.getHeader("username"), content, d).pack(anchor=tk.W)
 
@@ -227,6 +231,10 @@ class App(tk.Tk):
         msg = self.entry_field.get()
         if msg == "":
             return
+        #Scanning for emojis
+        if (re.search("(^:(1F|2))([0-9]{3}|[0-9]{2}[B-E]{1})(:$)", msg) != None):
+            None # call replacing mthd
+
         ecmsg = Message(msg)
         ecmsg.setHeader('username', self.username)
         ecmsg.setHeader('message_type','message')
