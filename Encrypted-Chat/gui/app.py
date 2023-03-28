@@ -440,7 +440,7 @@ class App(tk.Tk):
         self.title_bar = tk.Frame(self) # creates frame for new titlebar
         self.title_bar.pack(side=tk.TOP, expand=True, fill=tk.X) # packing elements into main GUI window
         close_button = ttk.Button(self.title_bar, text=" X ", style="Cl.TButton", command=self.on_closing) # make closing button
-        close_button.pack(side=tk.RIGHT)
+        close_button.pack(side=tk.RIGHT, padx =(0,X_PADDING))
         image = Image.open(ASSETDIR+'\\icon.png')
         img = image.resize((int(512/21), int(512/21)))
         self.my_img = ImageTk.PhotoImage(img)
