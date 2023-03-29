@@ -15,6 +15,7 @@ from PIL import Image, ImageTk
 import uuid
 from ctypes import windll
 import re
+import emoji
 
 # Hermes imports
 from net.message import Message
@@ -47,6 +48,24 @@ CLIENT = 1
 
 USER1 = "prof1.jpg"
 USER2 = "prof2.jpg"
+
+emoji_map = {
+    "\U0001F603": ":smiling_face_with_open_mouth_and_smiling_eyes:",
+    "\U0001F602": ":face_with_tears_of_joy:",
+    "\U0001F609": ":winking_face_with_tongue:",
+    "\U0001F970": ":smiling_face_with_3_hearts:",
+    "\U0001F618": ":face_blowing_a_kiss:",
+    "\U0001F914": ":thinking_face:",
+    "\U0001F92B": ":face_with_raised_eyebrow:",
+    "\U0001F644": ":face_with_rolling_eyes:",
+    "\U0001F634": ":sleeping_face:",
+    "\U0001F922": ":lying_face:",
+    "\U0001F975": ":smiling_face_with_tear:",
+    "\U0001F976": ":face_exhaling:",
+    "\U00002639": ":person_frowning:",
+    "\U0001F44D": ":thumbs_up:",
+    "\U0001F44E": ":thumbs_down:"
+}
 
 # Custom widget to show profile pic, username, time, and msg
 class message_widget(tk.Frame):
@@ -234,7 +253,19 @@ class App(tk.Tk):
         #Scanning for emojis
         if (re.search("(^:(1F|2))([0-9]{3}|[0-9]{2}[B-E]{1})(:$)", msg) != None):
             None # call replacing mthd
-
+        #msg = input()
+        if msg in ["\U0001F603", "\U0001F602", "\U0001F609", "\U0001F970", "\U0001F618", "\U0001F914", "\U0001F92B", "\U0001F644", "\U0001F634", "\U0001F922", "\U0001F975", "\U0001F976", "\U00002639", "\U0001F44D", "\U0001F44E"]:
+            output_text = ""
+            for char in msg:
+                if char in emoji.UNICODE_EMOJI:
+                    output_text += emoji.emojize(char)
+                elif char in emoji_map:
+                    output_text += emoji.emojize(emoji_map[char])
+                else:
+                    output_text += char
+            print(output_text)
+        
+        
         ecmsg = Message(msg)
         ecmsg.setHeader('username', self.username)
         ecmsg.setHeader('message_type','message')
