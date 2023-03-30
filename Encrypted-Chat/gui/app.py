@@ -11,23 +11,26 @@ import datetime
 import threading
 import tempfile
 import base64
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk,ImageFile
 import uuid
 from ctypes import windll
 import re
 import emoji
+import io
 
 # Hermes imports
 from net.message import Message
 from net.connection_manager import ConnectionManager
 
-# Working directory stuff that we'll need in the future for the installer
+USER_PROFILE_IMAGES = {}
 
+# Working directory stuff that we'll need in the future for the installer
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 # Gets this scripts current directory and then traverses up one
-NATIVEDIR = os.path.dirname(os.path.abspath(__file__)) + "\\..\\"
+NATIVEDIR = os.path.dirname(os.path.abspath(__name__))
 ASSETDIR = os.path.join(NATIVEDIR, "assets")
 GUIDIR = os.path.join(NATIVEDIR, "gui")
-
+CONFIGDIR = os.path.join(NATIVEDIR, "conf")
 #App graphics constants
 APPNAME = "Hermes"
 X_PADDING = 15
@@ -41,13 +44,6 @@ WS_EX_APPWINDOW = 0x00040000
 WS_EX_TOOLWINDOW = 0x00000080
 xwin = 0
 ywin = 0
-
-#Random Constants
-SERVER = 0
-CLIENT = 1
-
-USER1 = "prof1.jpg"
-USER2 = "prof2.jpg"
 
 emoji_map = {
     "\U0001F603": ":smiling_face_with_open_mouth_and_smiling_eyes:",
@@ -71,8 +67,10 @@ emoji_map = {
 class message_widget(tk.Frame):
     def __init__(self, parent, prof, username, msg, datetime):
         tk.Frame.__init__(self, parent)
-        self.image = Image.open(prof).resize((50,50))
-        self.prof = ImageTk.PhotoImage(self.image)
+        print("LEN A: ", len(prof))
+        img_io = io.BytesIO(prof)
+        print("LEN B: ", len(img_io.getbuffer()))
+        self.prof = ImageTk.PhotoImage(Image.open(img_io).resize((50,50)))
         self.label = ttk.Label(self, image=self.prof)
         self.label.grid(row=0, column=0, rowspan=2)
 
@@ -94,8 +92,8 @@ class image_message_widget(tk.Frame):
             print("IMAGE PATH:", img)
             self.img_res = Image.open(img).resize((500,500))
             self.tk_img = ImageTk.PhotoImage(self.img_res)
-            self.image = Image.open(prof).resize((50,50))
-            self.prof = ImageTk.PhotoImage(self.image)
+            img_io = io.BytesIO(prof)
+            self.prof = ImageTk.PhotoImage(Image.open(img_io).resize((50,50)))
             self.label = ttk.Label(self, image=self.prof)
             self.label.grid(row=0, column=0, rowspan=2)
 
@@ -123,8 +121,8 @@ class file_message_widget(tk.Frame): # DAWSON 2/13/2023
         src_file.close()
     def __init__(self, parent, prof, username, path, datetime):
         tk.Frame.__init__(self, parent)
-        self.image = Image.open(prof).resize((50,50))
-        self.prof = ImageTk.PhotoImage(self.image)
+        img_io = io.BytesIO(prof)
+        self.prof = ImageTk.PhotoImage(Image.open(img_io).resize((50,50)))
         self.label = ttk.Label(self, image=self.prof)
         self.label.grid(row=0, column=0, rowspan=2)
 
@@ -150,7 +148,7 @@ class App(tk.Tk):
 
         # Setup ConnectionManager
         self.conman = ConnectionManager()
-        self.configs = {"username" : "Dr. Wainwright", "style" : "cyborg", "prof" : "prof1.jpg"}
+        self.configs = {"username" : "Default_User", "style" : "cyborg", "prof" : "prof1.jpg"}
         self.prof_pic_name = "prof1.jpg"
 
         #Custom app window
@@ -199,6 +197,8 @@ class App(tk.Tk):
 
         thread = threading.Thread(target=self.listen)
         thread.start()
+        self.sendProfileRequest()
+        self.networkProfileUpdate(CONFIGDIR + '\\' + self.prof_pic_name)
 
     def listen(self):
         #This is run by a separate thread that is always looking for incoming messages and posts them to the texts
@@ -218,7 +218,7 @@ class App(tk.Tk):
             #if (re.search("(^:(1F|2))([0-9]{3}|[0-9]{2}[B-E]{1})(:$)", msg) != None):
             #    None  # call replacing mthd
             d = datetime.datetime.now()
-            message_widget(self.scrollable_frame, ASSETDIR+'\\'+USER1, msg.getHeader("username"), content, d).pack(anchor=tk.W)
+            message_widget(self.scrollable_frame, base64.decodebytes(USER_PROFILE_IMAGES[msg.getHeader("username")]), msg.getHeader("username"), content, d).pack(anchor=tk.W)
 
         # Message is an image
         if msg.getHeader("message_type") == "image":
@@ -226,7 +226,7 @@ class App(tk.Tk):
             img = open(".\\tmp\\" + str(uuid.uuid4()) + ".tmp", 'wb')
             img.write(base64.decodebytes(content[2:-1].encode('utf8')))
             print(img.name)
-            image_message_widget(self.scrollable_frame, ASSETDIR+'\\'+USER1, msg.getHeader("username"), img.name, d).pack(anchor=tk.W)
+            image_message_widget(self.scrollable_frame, base64.decodebytes(USER_PROFILE_IMAGES[msg.getHeader("username")]), msg.getHeader("username"), img.name, d).pack(anchor=tk.W)
             img.close()
 
         # Message is a file - DECLAN - make this get the file and show the download button
@@ -234,8 +234,7 @@ class App(tk.Tk):
             d = datetime.datetime.now()
             file = open(".\\tmp\\" + str(uuid.uuid4()) + "." + msg.getHeader("ext"), 'wb')
             file.write(base64.decodebytes(content[2:-1].encode('utf8')))
-            print(file.name)
-            file_message_widget(self.scrollable_frame, ASSETDIR+'\\'+USER1, msg.getHeader("username"), file.name, d).pack(anchor=tk.W)
+            file_message_widget(self.scrollable_frame, base64.decodebytes(USER_PROFILE_IMAGES[msg.getHeader("username")]), msg.getHeader("username"), file.name, d).pack(anchor=tk.W)
             file.close()
 
         # Message is a control message
@@ -244,6 +243,13 @@ class App(tk.Tk):
                 self.running = False
                 self.conman.close()
                 print("Server Closed")
+
+        if msg.getHeader("message_type") == "profile":
+            USER_PROFILE_IMAGES[msg.getHeader("username")] = msg.getContent()[2:-1].encode('utf8')
+            print("Update profile image for: " + msg.getHeader("username"))
+
+        if msg.getHeader("message_type") == "profile-request":
+            self.networkProfileUpdate(CONFIGDIR + '\\' + self.prof_pic_name)
 
     def sendTextMessage(self, event=None):
         #Sends a message and adds it to the texts list
@@ -267,12 +273,13 @@ class App(tk.Tk):
         
         
         ecmsg = Message(msg)
+        print("Current Username: ", self.username)
         ecmsg.setHeader('username', self.username)
         ecmsg.setHeader('message_type','message')
         self.conman.sendMessage(ecmsg) #TESTING BY DAWSON
         self.entry_field.delete(0, tk.END)
         d = datetime.datetime.now()
-        message_widget(self.scrollable_frame, ASSETDIR+'\\'+self.prof, self.username, msg, d).pack(anchor=tk.W)
+        message_widget(self.scrollable_frame, self.prof_img_data, self.username, msg, d).pack(anchor=tk.W)
         self.canvas.update()
         self.canvas.yview_moveto(1.0)
 
@@ -291,12 +298,35 @@ class App(tk.Tk):
         self.conman.sendMessage(ecmsg) #TESTING BY DAWSON
         self.entry_field.delete(0, tk.END)
         d = datetime.datetime.now()
-        image_message_widget(self.scrollable_frame, ASSETDIR+'\\'+self.prof, self.username, image.name, d).pack(anchor=tk.W)
+        image_message_widget(self.scrollable_frame, self.prof_img_data, self.username, image.name, d).pack(anchor=tk.W)
         self.canvas.update()
         self.canvas.yview_moveto(1.0)
         image.close()
 
-    def sendFileMessage(self, path): # DAWSON 2/13/2023
+    def sendProfileRequest(self):
+        ecmsg = Message()
+        ecmsg.setHeader('username', self.username)
+        ecmsg.setHeader('message_type', 'profile-request')
+        ecmsg.setContent('')
+        self.conman.sendMessage(ecmsg)
+
+    def networkProfileUpdate(self, imagePath):
+        image = open(imagePath, 'rb')
+        data = b''
+        for line in image.readlines():
+            data +=line
+
+        ecmsg = Message()
+        ecmsg.setHeader('username', self.username)
+        ecmsg.setHeader('message_type', 'profile')
+        ecmsg.setContent(str(base64.b64encode(data)))
+        self.conman.sendMessage(ecmsg)
+        self.canvas.update()
+        self.canvas.yview_moveto(1.0)
+        image.close()
+
+
+    def sendFileMessage(self, path):
 
         file = open(path, 'rb')
         data = b''
@@ -307,14 +337,15 @@ class App(tk.Tk):
         ecmsg = Message()
         ecmsg.setHeader('username', self.username)
         ecmsg.setHeader('message_type', 'file')
-        ecmsg.setHeader('ext', file.name.split('.')[1])
+        ecmsg.setHeader('ext', file.name.split('.')[-1])
         ecmsg.setContent(str(base64.b64encode(data)))
-        self.conman.sendMessage(ecmsg) #TESTING BY DAWSON
+        self.conman.sendMessage(ecmsg) 
         self.entry_field.delete(0, tk.END)
         d = datetime.datetime.now()
-        file_message_widget(self.scrollable_frame, ASSETDIR+'\\'+self.prof, self.username, file.name,d).pack(anchor=tk.W)
+        file_message_widget(self.scrollable_frame, self.prof_img_data, self.username, file.name,d).pack(anchor=tk.W)
         self.canvas.update()
         self.canvas.yview_moveto(1.0)
+        file.close()
 
     def addAttachment(self):
         file_path = tkinter.filedialog.askopenfilename(initialdir = "/", title = "Attachment",filetypes = (("all files","*.*"),("Text files","*.txt*")))
@@ -411,7 +442,7 @@ class App(tk.Tk):
         # current profile picture
         img_frame = ttk.Frame(top)
         img_frame.pack(side=tk.RIGHT, padx=X_PADDING, fill=tk.X, expand=tk.YES)
-        pic = Image.open(ASSETDIR+'\\'+self.prof)
+        pic = Image.open(CONFIGDIR+'\\'+self.prof_pic_name)
         pic = pic.resize((205,205))
         self.pic1 = ImageTk.PhotoImage(pic)
         pic_label = ttk.Label(img_frame, image=self.pic1)
@@ -425,21 +456,30 @@ class App(tk.Tk):
 
     def get_prof_pic(self):
         # Lets you choose a profile picture. Gets just the name of the file in the assets folder
-        path = tkinter.filedialog.askopenfilename(initialdir = ASSETDIR, title = "Profile Picture", filetypes=[("Images", ".png .jpg")]).split('/')
-        self.prof_pic_name = path[-1]
+        path = tkinter.filedialog.askopenfilename(initialdir = ASSETDIR, title = "Profile Picture", filetypes=[("Images", ".png .jpg")])
+        f1 = open(path, 'rb')
+        f2 = open(CONFIGDIR + '/' + path.split('/')[-1], 'wb')
+        for line in f1.readlines():
+            f2.write(line)
+        f2.close()
+        f1.close()
+        self.prof_pic_name = path.split('/')[-1]
 
     def save_config(self, username, style): 
         # saves thee current configurations to the config file
-       f = open(GUIDIR+'\\'+"config.txt","w")
-       f.write(username+'\n')
-       f.write(style+'\n')
-       f.write(self.prof_pic_name)
-       f.close()
-       self.set_config()
+        f = open(CONFIGDIR + "\\" +"config.txt","w")
+        f.write(username+'\n')
+        f.write(style+'\n')
+        f.write(self.prof_pic_name)
+        f.close()
+        print("Config Saved")
+        self.set_config()
+        if self.conman.isConnected():
+            self.networkProfileUpdate(CONFIGDIR + '\\' + self.prof_pic_name)
 
     def set_config(self):
         # Gets the configs from the config file and applies it
-        with open(GUIDIR+'\\'+'config.txt') as f:
+        with open(CONFIGDIR+"\\config.txt") as f:
             lines = [ line.strip() for line in f ]
         
         if len(lines) == 3:
@@ -449,8 +489,15 @@ class App(tk.Tk):
         
         self.username = self.configs["username"]
         self.style = self.configs["style"]
-        self.prof = self.configs["prof"]
+        self.prof_pic_name = self.configs["prof"]
         
+        # Set image data
+        img_file = open(CONFIGDIR +'\\'+self.prof_pic_name, 'rb')
+        self.prof_img_data = b''
+        for line in img_file.readlines():
+            self.prof_img_data +=line
+        img_file.close()
+
         self.style = ttk.Style(self.configs["style"])
         if self.configs["style"] == "cyborg": #custom Hermes theme
             self.style.configure('TButton', background=PRIMARY_COLOR, bordercolor=PRIMARY_COLOR, lightcolor=PRIMARY_COLOR, darkcolor=PRIMARY_COLOR)

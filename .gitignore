@@ -9,6 +9,9 @@ __pycache__/
 # TMP
 *.tmp
 tmp/
+conf/
+!conf/config.txt
+!conf/prof1.jpg
 # Distribution / packaging
 .Python
 build/

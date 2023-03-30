@@ -33,11 +33,14 @@ class EChatClient():
         return False
     
     def sendMsg(self, message: Message):
-        for msg in message.getData():
-            # This is because windows sockets are dumb and dont seperate packets if they arrive too fast
-            # time.sleep(0.0001)
-            data = self.encrypt_pair.encrypt(msg.encode('utf8'))
-            self.client_socket.sendall(len(data).to_bytes(2, 'big')+data)
+        try:
+            for msg in message.getData():
+                # This is because windows sockets are dumb and dont seperate packets if they arrive too fast
+                # time.sleep(0.0001)
+                data = self.encrypt_pair.encrypt(msg.encode('utf8'))
+                self.client_socket.sendall(len(data).to_bytes(2, 'big')+data)
+        except:
+            return
 
     def readAvailable(self):
         read_sockets, write_sockets, error_sockets = select.select([self.client_socket], [], [], 0)
