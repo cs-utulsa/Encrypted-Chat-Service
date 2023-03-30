@@ -215,8 +215,8 @@ class App(tk.Tk):
         # Message is a basic text message
         if msg.getHeader("message_type") == "message":
             # Scanning for emojis
-            if (re.search("(^:(1F|2))([0-9]{3}|[0-9]{2}[B-E]{1})(:$)", msg) != None):
-                None  # call replacing mthd
+            #if (re.search("(^:(1F|2))([0-9]{3}|[0-9]{2}[B-E]{1})(:$)", msg) != None):
+            #    None  # call replacing mthd
             d = datetime.datetime.now()
             message_widget(self.scrollable_frame, ASSETDIR+'\\'+USER1, msg.getHeader("username"), content, d).pack(anchor=tk.W)
 

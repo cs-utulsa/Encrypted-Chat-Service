@@ -65,7 +65,8 @@ class EChatServer:
                     print(len(msg))
                     # This is because windows sockets are dumb and dont seperate packets if they arrive too fast
                     # time.sleep(0.0001)
-                    socket.sendall(em.encrypt(msg.encode('utf8')))
+                    data = em.encrypt(msg.encode('utf8'))
+                    socket.sendall(len(data).to_bytes(2, 'big')+data)
 
     def readAvailable(self):
         """
@@ -91,7 +92,11 @@ class EChatServer:
                     while True:
                         try:
                             tmp_msg = Message()
-                            data = em.decrypt(socket.recv(4032))
+                            pkt_len = int.from_bytes(socket.recv(2), "big")
+                            if pkt_len > 4096:
+                                print("Server read overflow")
+                                break
+                            data = em.decrypt(socket.recv(pkt_len))
                             print(f'DECRYPT: {data}')
                             tmp_msg.parseMsg(data)
                             total_content += tmp_msg.getContent()
