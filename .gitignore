@@ -8,7 +8,7 @@ __pycache__/
 
 # TMP
 *.tmp
-
+tmp/
 # Distribution / packaging
 .Python
 build/
