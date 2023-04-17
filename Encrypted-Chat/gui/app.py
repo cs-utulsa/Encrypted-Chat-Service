@@ -424,6 +424,7 @@ class App(tk.Tk):
         theme_label.pack(side=tk.LEFT, padx=(0,X_PADDING))
         style = ttk.Style()
         theme_names = style.theme_names()
+        theme_names[14] = "Hermes"
         theme_cbo = ttk.Combobox(
             master=theme_frame,
             text=style.theme.name,
@@ -431,9 +432,14 @@ class App(tk.Tk):
             font=FONT,
         )
         theme_cbo.pack(side=tk.RIGHT, fill=tk.X, expand=tk.YES)
-        theme_cbo.current(theme_names.index(style.theme.name))
+        if(style.theme.name == "cyborg"):
+            theme_cbo.current(theme_names.index("Hermes"))
+        else:
+            theme_cbo.current(theme_names.index(style.theme.name))
         def change_theme(e):
             t = theme_cbo.get()
+            if(t == "Hermes"):
+                t = "cyborg"
             self.style.theme_use(t)
             theme_cbo.selection_clear()
         theme_cbo.bind("<<ComboboxSelected>>", change_theme)
@@ -476,7 +482,10 @@ class App(tk.Tk):
         # saves thee current configurations to the config file
         f = open(CONFIGDIR + "\\" +"config.txt","w")
         f.write(username+'\n')
-        f.write(style+'\n')
+        if(style == "Hermes"):
+            f.write("cyborg\n")
+        else:
+            f.write(style+'\n')
         f.write(self.prof_pic_name)
         f.close()
         print("Config Saved")
