@@ -442,6 +442,7 @@ class App(tk.Tk):
                 t = "cyborg"
             self.style.theme_use(t)
             theme_cbo.selection_clear()
+            top.update()
         theme_cbo.bind("<<ComboboxSelected>>", change_theme)
 
         # profile picture selection
@@ -449,7 +450,7 @@ class App(tk.Tk):
         prof_frame.pack(padx=X_PADDING, pady=(0,Y_PADDING), fill=tk.X, expand=tk.YES)
         prof_label = ttk.Label(prof_frame, text="Photo", font=FONT, width=15)
         prof_label.pack(side=tk.LEFT, padx=(0,X_PADDING))
-        prof_button = ttk.Button(prof_frame, text="Select", command=self.get_prof_pic)
+        prof_button = ttk.Button(prof_frame, text="Select Square Image", command=self.get_prof_pic)
         prof_button.pack(side=tk.RIGHT, fill=tk.X, expand=tk.YES)
 
         # current profile picture
