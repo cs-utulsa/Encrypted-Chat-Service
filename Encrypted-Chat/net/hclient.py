@@ -43,31 +43,34 @@ class EChatClient():
             return
 
     def readAvailable(self):
-        read_sockets, write_sockets, error_sockets = select.select([self.client_socket], [], [], 0)
-        for sock in read_sockets:
-            msg = Message()
-            total_content = ""
-            #try:
-            while True:
-                tmp_msg = Message()
-                pkt_len = int.from_bytes(sock.recv(2), "big")
-                if pkt_len > 4096:
-                    print("Client read overflow")
-                    break
-                edata = sock.recv(pkt_len)
-                data = self.encrypt_pair.decrypt(edata)
-                print(f'DECRYPT: {data}')
-                tmp_msg.parseMsg(data)
-                total_content += tmp_msg.getContent()
-                if tmp_msg.getHeader('seg').split(':')[0] == tmp_msg.getHeader('seg').split(':')[1]:
-                    msg.setHeaders(tmp_msg.getHeaders())
-                    print("Done Fragmenting")
-                    break
-            #except Exception as e:
-             #   print("ReadAvailable ", e)
-             #   return None
-            msg.setContent(total_content)
-            return msg
+        try:
+            read_sockets, write_sockets, error_sockets = select.select([self.client_socket], [], [], 0)
+            for sock in read_sockets:
+                msg = Message()
+                total_content = ""
+                #try:
+                while True:
+                    tmp_msg = Message()
+                    pkt_len = int.from_bytes(sock.recv(2), "big")
+                    if pkt_len > 4096:
+                        print("Client read overflow")
+                        break
+                    edata = sock.recv(pkt_len)
+                    data = self.encrypt_pair.decrypt(edata)
+                    print(f'DECRYPT: {data}')
+                    tmp_msg.parseMsg(data)
+                    total_content += tmp_msg.getContent()
+                    if tmp_msg.getHeader('seg').split(':')[0] == tmp_msg.getHeader('seg').split(':')[1]:
+                        msg.setHeaders(tmp_msg.getHeaders())
+                        print("Done Fragmenting")
+                        break
+                #except Exception as e:
+                #   print("ReadAvailable ", e)
+                #   return None
+                msg.setContent(total_content)
+                return msg
+        except Exception as e:
+            print(e)
         return None
 
     def close(self):
