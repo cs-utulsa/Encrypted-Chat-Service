@@ -325,7 +325,6 @@ class App(tk.Tk):
         self.canvas.yview_moveto(1.0)
         image.close()
 
-
     def sendFileMessage(self, path):
 
         file = open(path, 'rb')
@@ -355,10 +354,16 @@ class App(tk.Tk):
         else:
             self.sendFileMessage(file_path)
 
-    def addEmoji(self):
+    def close_top(self, top, button):
+        top.destroy()
+        button['state'] = 'normal'
+
+    def addEmoji(self, button):
         emopage = ttk.Toplevel()
         emopage.title(APPNAME)
         emopage.iconbitmap(ASSETDIR+'\\icon.ico')
+        button['state'] = 'disabled'
+        emopage.protocol("WM_DELETE_WINDOW", lambda: self.close_top(emopage, button))
         
         settings_label = ttk.Label(emopage, text="Insert Emoji", font=("OCBR", 20))
         settings_label.pack(pady=Y_PADDING)
@@ -391,11 +396,13 @@ class App(tk.Tk):
         def putInTextBox(self, emoji):
             self.entry_field.insert(tk.END,emoji)
         
-    def settings(self):
+    def settings(self, button):
         top = ttk.Toplevel()
         top.title(APPNAME)
         top.iconbitmap(ASSETDIR+'\\icon.ico')
         top.resizable(False, False)
+        button['state'] = 'disabled'
+        top.protocol("WM_DELETE_WINDOW", lambda: self.close_top(top, button))
 
         # Title of the window
         settings_label = ttk.Label(top, text="Settings", font=("OCBR", 22))
@@ -417,6 +424,7 @@ class App(tk.Tk):
         theme_label.pack(side=tk.LEFT, padx=(0,X_PADDING))
         style = ttk.Style()
         theme_names = style.theme_names()
+        theme_names[14] = "Hermes"
         theme_cbo = ttk.Combobox(
             master=theme_frame,
             text=style.theme.name,
@@ -424,11 +432,17 @@ class App(tk.Tk):
             font=FONT,
         )
         theme_cbo.pack(side=tk.RIGHT, fill=tk.X, expand=tk.YES)
-        theme_cbo.current(theme_names.index(style.theme.name))
+        if(style.theme.name == "cyborg"):
+            theme_cbo.current(theme_names.index("Hermes"))
+        else:
+            theme_cbo.current(theme_names.index(style.theme.name))
         def change_theme(e):
             t = theme_cbo.get()
+            if(t == "Hermes"):
+                t = "cyborg"
             self.style.theme_use(t)
             theme_cbo.selection_clear()
+            top.update()
         theme_cbo.bind("<<ComboboxSelected>>", change_theme)
 
         # profile picture selection
@@ -436,7 +450,7 @@ class App(tk.Tk):
         prof_frame.pack(padx=X_PADDING, pady=(0,Y_PADDING), fill=tk.X, expand=tk.YES)
         prof_label = ttk.Label(prof_frame, text="Photo", font=FONT, width=15)
         prof_label.pack(side=tk.LEFT, padx=(0,X_PADDING))
-        prof_button = ttk.Button(prof_frame, text="Select", command=self.get_prof_pic)
+        prof_button = ttk.Button(prof_frame, text="Select Square Image", command=self.get_prof_pic)
         prof_button.pack(side=tk.RIGHT, fill=tk.X, expand=tk.YES)
 
         # current profile picture
@@ -469,7 +483,10 @@ class App(tk.Tk):
         # saves thee current configurations to the config file
         f = open(CONFIGDIR + "\\" +"config.txt","w")
         f.write(username+'\n')
-        f.write(style+'\n')
+        if(style == "Hermes"):
+            f.write("cyborg\n")
+        else:
+            f.write(style+'\n')
         f.write(self.prof_pic_name)
         f.close()
         print("Config Saved")
@@ -582,7 +599,7 @@ class App(tk.Tk):
 
         #Send frame is where you enter and send texts
         send_frame = ttk.Frame()
-        settings_button = ttk.Button(send_frame, text="Settings", command=lambda: self.settings())
+        settings_button = ttk.Button(send_frame, text="Settings", command=lambda: self.settings(settings_button))
         settings_button.pack(side=tk.LEFT, padx=(0,X_PADDING))
         my_msg = tk.StringVar()
         self.entry_field = ttk.Entry(send_frame, textvariable=my_msg, font=FONT)
@@ -591,8 +608,8 @@ class App(tk.Tk):
         send_button.pack(side=tk.RIGHT)
         attach_button = ttk.Button(send_frame, text="Attach File", command=self.addAttachment)
         attach_button.pack(side=tk.RIGHT, padx=(0,X_PADDING))
-        attach_button = ttk.Button(send_frame, text="\U0001F603", command=self.addEmoji)
-        attach_button.pack(side=tk.RIGHT, padx=(0,X_PADDING))
+        emoji_button = ttk.Button(send_frame, text="\U0001F603", command=lambda: self.addEmoji(emoji_button))
+        emoji_button.pack(side=tk.RIGHT, padx=(0,X_PADDING))
         send_frame.pack(padx=X_PADDING, pady=Y_PADDING, fill=tk.X)
 
 if __name__ == "__main__":

@@ -1,3 +1,0 @@
-Default_User
-solar
-settings.png
