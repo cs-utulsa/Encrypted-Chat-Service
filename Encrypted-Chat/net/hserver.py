@@ -97,7 +97,7 @@ class EChatServer:
                                 print("Server read overflow")
                                 break
                             data = em.decrypt(socket.recv(pkt_len))
-                            print(f'DECRYPT: {data}')
+                            #print(f'DECRYPT: {data}')
                             tmp_msg.parseMsg(data)
                             total_content += tmp_msg.getContent()
                             
