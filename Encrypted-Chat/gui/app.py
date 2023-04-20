@@ -481,7 +481,7 @@ class App(tk.Tk):
 
     def save_config(self, username, style): 
         # saves thee current configurations to the config file
-        f = open(CONFIGDIR + "\\" +"config.txt","w")
+        f = open(CONFIGDIR + "\\temp\\" +"config.txt","w")
         f.write(username+'\n')
         if(style == "Hermes"):
             f.write("cyborg\n")
@@ -496,7 +496,7 @@ class App(tk.Tk):
 
     def set_config(self):
         # Gets the configs from the config file and applies it
-        with open(CONFIGDIR+"\\config.txt") as f:
+        with open(CONFIGDIR+"\\temp\\config.txt") as f:
             lines = [ line.strip() for line in f ]
         
         if len(lines) == 3:

@@ -1,11 +1,21 @@
 import argparse
+import os
 from chat import Chat as chat
 from gui.app import App
 __BANNER__ = """Encrypted Chat v1.0"""
 
+NATIVEDIR = os.path.dirname(os.path.abspath(__name__))
+CONFIGDIR = os.path.join(NATIVEDIR, "conf")
+
 def main():
     # Prints the banner
     print(__BANNER__)
+  
+    path = os.path.join(CONFIGDIR, "temp")
+    if(not os.path.exists(path)):
+        os.mkdir(path, 0o666)
+        file = open(path + "\\" +"config.txt",'w+')
+        file.close()
     
     # Creates an ArgumentParser object with the name and description of the program
     parser = argparse.ArgumentParser(prog='EncryptedChat.py', description='Encrypted Chat Program')
