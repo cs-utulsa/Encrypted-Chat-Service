@@ -58,7 +58,7 @@ class EChatClient():
                         print("Client read overflow")
                         print(sock.recv(2048))
                         exit()
-                    edata = ""
+                    edata = b''
                     while len(edata) != pkt_len:
                         edata += sock.recv(pkt_len-len(edata))
                     print("RAW_LEN: ", len(edata))
