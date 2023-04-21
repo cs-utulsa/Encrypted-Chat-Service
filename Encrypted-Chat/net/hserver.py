@@ -92,10 +92,13 @@ class EChatServer:
                         try:
                             tmp_msg = Message()
                             pkt_len = int.from_bytes(socket.recv(2), "big")
+                            print("SRV_RCV_LEN: ",pkt_len)
                             if pkt_len > 4096:
                                 print("Server read overflow")
                                 break
-                            data = em.decrypt(socket.recv(pkt_len))
+                            enc_data = socket.recv(pkt_len)
+                            print("RAW: ",enc_data)
+                            data = em.decrypt(enc_data)
                             #print(f'DECRYPT: {data}')
                             tmp_msg.parseMsg(data)
                             total_content += tmp_msg.getContent()

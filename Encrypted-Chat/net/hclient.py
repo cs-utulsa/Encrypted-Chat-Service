@@ -38,6 +38,7 @@ class EChatClient():
                 # This is because windows sockets are dumb and dont seperate packets if they arrive too fast
                 # time.sleep(0.0001)
                 data = self.encrypt_pair.encrypt(msg.encode('utf8'))
+                print("CLI_SND_LEN: ", len(data))
                 self.client_socket.sendall(len(data).to_bytes(2, 'big')+data)
         except:
             return
@@ -52,7 +53,7 @@ class EChatClient():
                 while True:
                     tmp_msg = Message()
                     pkt_len = int.from_bytes(sock.recv(2), "big")
-                    print("PKT_LEN: ",pkt_len)
+                    print("CLI_RCV_LEN: ",pkt_len)
                     if pkt_len > 4096:
                         print("Client read overflow")
                         print(sock.recv(2048))
