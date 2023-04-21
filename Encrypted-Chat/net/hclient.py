@@ -58,7 +58,9 @@ class EChatClient():
                         print("Client read overflow")
                         print(sock.recv(2048))
                         exit()
-                    edata = sock.recv(pkt_len)
+                    edata = ""
+                    while len(edata) != pkt_len:
+                        edata += sock.recv(pkt_len-len(edata))
                     print("RAW_LEN: ", len(edata))
                     print("RAW: ", edata)
                     data = self.encrypt_pair.decrypt(edata)

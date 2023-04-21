@@ -96,7 +96,8 @@ class EChatServer:
                         if pkt_len > 4096:
                             print("Server read overflow")
                             break
-                        enc_data = socket.recv(pkt_len)
+                        while len(enc_data) != pkt_len:
+                            enc_data += socket.recv(pkt_len-len(enc_data))
                         print("RAW_LEN: ", len(enc_data))
                         print("RAW: ",enc_data)
                         data = em.decrypt(enc_data)
