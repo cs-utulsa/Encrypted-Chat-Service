@@ -26,20 +26,20 @@ class ECEncrypt:
     Encrypt the data and retrun the encrypted data
     """
     def encrypt(self, data:str):
-        #data = self._pad(data.decode('utf8'))
-        #iv = Random.new().read(AES.block_size)
-        #cipher = AES.new(self.AES_EKEY, AES.MODE_CBC, iv)
-        #return iv + cipher.encrypt(data.encode('utf8'))
-        return data
+        data = self._pad(data.decode('utf8'))
+        iv = Random.new().read(AES.block_size)
+        cipher = AES.new(self.AES_EKEY, AES.MODE_CBC, iv)
+        return iv + cipher.encrypt(data.encode('utf8'))
+        #return data
     """
     Decrypt the bytes with the key and call the unpad method
     """
     def decrypt(self, data:bytes):
-        #iv = data[:16]
-        #decrypt_cipher = AES.new(self.AES_DKEY, AES.MODE_CBC, iv)
-        #dbg = decrypt_cipher.decrypt(data[16:])
-        #return self.unpad(dbg.decode())
-        return data.decode('utf8')
+        iv = data[:16]
+        decrypt_cipher = AES.new(self.AES_DKEY, AES.MODE_CBC, iv)
+        dbg = decrypt_cipher.decrypt(data[16:])
+        return self.unpad(dbg.decode())
+        #return data.decode('utf8')
 
     """
     Pad the data to achieve equivalent blocksize
