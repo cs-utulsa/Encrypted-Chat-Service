@@ -89,35 +89,36 @@ class EChatServer:
                     em = self.crypt_pair[socket]
                     total_content = ""
                     while True:
-                        try:
-                            tmp_msg = Message()
-                            pkt_len = int.from_bytes(socket.recv(2), "big")
-                            print("SRV_RCV_LEN: ",pkt_len)
-                            if pkt_len > 4096:
-                                print("Server read overflow")
-                                break
-                            enc_data = socket.recv(pkt_len)
-                            print("RAW: ",enc_data)
-                            data = em.decrypt(enc_data)
-                            #print(f'DECRYPT: {data}')
-                            tmp_msg.parseMsg(data)
-                            total_content += tmp_msg.getContent()
-                            
-                            # Check if client is disconnecting
-                            if msg.getHeader("message_type") == "control" and msg.getContent() == "CLOSING":
-                                del self.crypt_pair[socket]
-                                socket.close()
-                                del socket
-                            if tmp_msg.getHeader('seg').split(':')[0] == tmp_msg.getHeader('seg').split(':')[1]:
-                                msg.setHeaders(tmp_msg.getHeaders())
-                                print("Done Fragmenting")
-                                break
-                        except Exception as e:
-                            print("Server While loop error:", e)
-                            print("Client Error Disconnected")
-                            self.read_sockets.remove(socket)
+                        #try:
+                        tmp_msg = Message()
+                        pkt_len = int.from_bytes(socket.recv(2), "big")
+                        print("SRV_RCV_LEN: ",pkt_len)
+                        if pkt_len > 4096:
+                            print("Server read overflow")
+                            break
+                        enc_data = socket.recv(pkt_len)
+                        print("RAW_LEN: ", len(enc_data))
+                        print("RAW: ",enc_data)
+                        data = em.decrypt(enc_data)
+                        #print(f'DECRYPT: {data}')
+                        tmp_msg.parseMsg(data)
+                        total_content += tmp_msg.getContent()
+                        
+                        # Check if client is disconnecting
+                        if msg.getHeader("message_type") == "control" and msg.getContent() == "CLOSING":
+                            del self.crypt_pair[socket]
                             socket.close()
-                            continue
+                            del socket
+                        if tmp_msg.getHeader('seg').split(':')[0] == tmp_msg.getHeader('seg').split(':')[1]:
+                            msg.setHeaders(tmp_msg.getHeaders())
+                            print("Done Fragmenting")
+                            break
+                        #except Exception as e:
+                        #    print("Server While loop error:", e)
+                        #    print("Client Error Disconnected")
+                        #    self.read_sockets.remove(socket)
+                        #    socket.close()
+                        #    continue
                     msg.setContent(total_content)
                     self.sendMsg(msg, exclusion=socket)
                     return msg

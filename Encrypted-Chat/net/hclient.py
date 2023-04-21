@@ -59,6 +59,7 @@ class EChatClient():
                         print(sock.recv(2048))
                         exit()
                     edata = sock.recv(pkt_len)
+                    print("RAW_LEN: ", len(edata))
                     print("RAW: ", edata)
                     data = self.encrypt_pair.decrypt(edata)
                     #print(f'DECRYPT: {data}')
