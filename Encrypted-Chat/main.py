@@ -11,10 +11,18 @@ def main():
     # Prints the banner
     print(__BANNER__)
   
-    path = os.path.join(CONFIGDIR, "temp")
+    path = os.path.join(NATIVEDIR, "tmp")
     if(not os.path.exists(path)):
-        os.mkdir(path, 0o666)
-        file = open(path + "\\" +"config.txt",'w+')
+        os.mkdir(path)
+    if(not os.path.exists(CONFIGDIR)):
+        os.mkdir(CONFIGDIR)
+    if(not os.path.exists(NATIVEDIR + '\\conf\\config.txt')):
+        prof = open(NATIVEDIR+"\\assets\prof1.jpg",'rb')
+        prof2 = open(CONFIGDIR + "\\prof1.jpg",'wb+')
+        for line in prof.readlines():
+            prof2.write(line)
+        prof2.close()
+        file = open(CONFIGDIR +"\\config.txt",'w+')
         file.close()
     
     # Creates an ArgumentParser object with the name and description of the program

@@ -113,6 +113,8 @@ class image_message_widget(tk.Frame):
 class file_message_widget(tk.Frame): # DAWSON 2/13/2023
     def dl_attachment(self, path):
         dest_path = tkinter.filedialog.asksaveasfilename(initialfile=path.split('\\')[-1])
+        if dest_path == '':
+            return
         print("Write to dir: ", dest_path)
         dest_file = open(dest_path, 'wb')
         src_file = open(path, 'rb')
@@ -223,7 +225,7 @@ class App(tk.Tk):
         # Message is an image
         if msg.getHeader("message_type") == "image":
             d = datetime.datetime.now()
-            img = open(".\\tmp\\" + str(uuid.uuid4()) + ".tmp", 'wb')
+            img = open(NATIVEDIR + "tmp\\" + str(uuid.uuid4()) + ".tmp", 'wb')
             img.write(base64.decodebytes(content[2:-1].encode('utf8')))
             print(img.name)
             image_message_widget(self.scrollable_frame, base64.decodebytes(USER_PROFILE_IMAGES[msg.getHeader("username")]), msg.getHeader("username"), img.name, d).pack(anchor=tk.W)
@@ -232,7 +234,7 @@ class App(tk.Tk):
         # Message is a file - DECLAN - make this get the file and show the download button
         if msg.getHeader("message_type") == "file": # DAWSON 2/13/2023
             d = datetime.datetime.now()
-            file = open(".\\tmp\\" + str(uuid.uuid4()) + "." + msg.getHeader("ext"), 'wb')
+            file = open(NATIVEDIR + "tmp\\" + str(uuid.uuid4()) + "." + msg.getHeader("ext"), 'wb')
             file.write(base64.decodebytes(content[2:-1].encode('utf8')))
             file_message_widget(self.scrollable_frame, base64.decodebytes(USER_PROFILE_IMAGES[msg.getHeader("username")]), msg.getHeader("username"), file.name, d).pack(anchor=tk.W)
             file.close()
@@ -253,35 +255,36 @@ class App(tk.Tk):
 
     def sendTextMessage(self, event=None):
         #Sends a message and adds it to the texts list
-        msg = self.entry_field.get()
-        if msg == "":
-            return
-        #Scanning for emojis
-        if (re.search("(^:(1F|2))([0-9]{3}|[0-9]{2}[B-E]{1})(:$)", msg) != None):
-            None # call replacing mthd
-        #msg = input()
-        if msg in ["\U0001F603", "\U0001F602", "\U0001F609", "\U0001F970", "\U0001F618", "\U0001F914", "\U0001F92B", "\U0001F644", "\U0001F634", "\U0001F922", "\U0001F975", "\U0001F976", "\U00002639", "\U0001F44D", "\U0001F44E"]:
-            output_text = ""
-            for char in msg:
-                if char in emoji.UNICODE_EMOJI:
-                    output_text += emoji.emojize(char)
-                elif char in emoji_map:
-                    output_text += emoji.emojize(emoji_map[char])
-                else:
-                    output_text += char
-            print(output_text)
-        
-        
-        ecmsg = Message(msg)
-        print("Current Username: ", self.username)
-        ecmsg.setHeader('username', self.username)
-        ecmsg.setHeader('message_type','message')
-        self.conman.sendMessage(ecmsg) #TESTING BY DAWSON
-        self.entry_field.delete(0, tk.END)
-        d = datetime.datetime.now()
-        message_widget(self.scrollable_frame, self.prof_img_data, self.username, msg, d).pack(anchor=tk.W)
-        self.canvas.update()
-        self.canvas.yview_moveto(1.0)
+        if self.conman.isConnected():
+            msg = self.entry_field.get()
+            if msg == "":
+                return
+            #Scanning for emojis
+            if (re.search("(^:(1F|2))([0-9]{3}|[0-9]{2}[B-E]{1})(:$)", msg) != None):
+                None # call replacing mthd
+            #msg = input()
+            if msg in ["\U0001F603", "\U0001F602", "\U0001F609", "\U0001F970", "\U0001F618", "\U0001F914", "\U0001F92B", "\U0001F644", "\U0001F634", "\U0001F922", "\U0001F975", "\U0001F976", "\U00002639", "\U0001F44D", "\U0001F44E"]:
+                output_text = ""
+                for char in msg:
+                    if char in emoji.UNICODE_EMOJI:
+                        output_text += emoji.emojize(char)
+                    elif char in emoji_map:
+                        output_text += emoji.emojize(emoji_map[char])
+                    else:
+                        output_text += char
+                print(output_text)
+            
+            
+            ecmsg = Message(msg)
+            print("Current Username: ", self.username)
+            ecmsg.setHeader('username', self.username)
+            ecmsg.setHeader('message_type','message')
+            self.conman.sendMessage(ecmsg) #TESTING BY DAWSON
+            self.entry_field.delete(0, tk.END)
+            d = datetime.datetime.now()
+            message_widget(self.scrollable_frame, self.prof_img_data, self.username, msg, d).pack(anchor=tk.W)
+            self.canvas.update()
+            self.canvas.yview_moveto(1.0)
 
     def sendImageMessage(self, path):
 
@@ -481,7 +484,7 @@ class App(tk.Tk):
 
     def save_config(self, username, style): 
         # saves thee current configurations to the config file
-        f = open(CONFIGDIR + "\\temp\\" +"config.txt","w")
+        f = open(CONFIGDIR +"\\config.txt","w+")
         f.write(username+'\n')
         if(style == "Hermes"):
             f.write("cyborg\n")
@@ -496,7 +499,7 @@ class App(tk.Tk):
 
     def set_config(self):
         # Gets the configs from the config file and applies it
-        with open(CONFIGDIR+"\\temp\\config.txt") as f:
+        with open(CONFIGDIR+"\\config.txt", 'r+') as f:
             lines = [ line.strip() for line in f ]
         
         if len(lines) == 3:
