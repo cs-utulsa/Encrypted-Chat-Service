@@ -54,11 +54,11 @@ class EChatClient():
                     tmp_msg = Message()
                     pkt_len = int.from_bytes(sock.recv(2), "big")
                     print("CLI_RCV_LEN: ",pkt_len)
-                    if pkt_len > 4096:
-                        print("Client read overflow")
-                        print(sock.recv(2048))
-                        exit()
-                    edata = sock.recv(pkt_len)
+                    #if pkt_len > 4096:
+                    #    print("Client read overflow")
+                    #    print(sock.recv(2048))
+                    #    exit()
+                    edata = sock.recv(10000000)
                     print("RAW: ", edata)
                     data = self.encrypt_pair.decrypt(edata)
                     #print(f'DECRYPT: {data}')
