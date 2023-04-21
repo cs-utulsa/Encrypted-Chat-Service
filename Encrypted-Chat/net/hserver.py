@@ -65,7 +65,7 @@ class EChatServer:
                     # time.sleep(0.0001)
                     data = em.encrypt(msg.encode('utf8'))
                     print("SRV_SND_LEN: ", len(data))
-                    socket.sendall(len(data).to_bytes(2, 'big')+data)
+                    socket.sendall(data)
 
     def readAvailable(self):
         """

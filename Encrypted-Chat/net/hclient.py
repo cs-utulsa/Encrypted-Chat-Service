@@ -39,7 +39,7 @@ class EChatClient():
                 # time.sleep(0.0001)
                 data = self.encrypt_pair.encrypt(msg.encode('utf8'))
                 print("CLI_SND_LEN: ", len(data))
-                self.client_socket.sendall(len(data).to_bytes(2, 'big')+data)
+                self.client_socket.sendall(data)
         except:
             return
 
