@@ -91,12 +91,12 @@ class EChatServer:
                     while True:
                         try:
                             tmp_msg = Message()
-                            #pkt_len = int.from_bytes(socket.recv(2), "big")
-                            #print("SRV_RCV_LEN: ",pkt_len)
-                            #if pkt_len > 4096:
-                            #    print("Server read overflow")
-                            #    break
-                            enc_data = socket.recv(10000000)
+                            pkt_len = int.from_bytes(socket.recv(2), "big")
+                            print("SRV_RCV_LEN: ",pkt_len)
+                            if pkt_len > 4096:
+                                print("Server read overflow")
+                                break
+                            enc_data = socket.recv(pkt_len)
                             print("RAW: ",enc_data)
                             data = em.decrypt(enc_data)
                             #print(f'DECRYPT: {data}')
