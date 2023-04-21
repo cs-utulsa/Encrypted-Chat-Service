@@ -91,8 +91,8 @@ class EChatServer:
                     while True:
                         try:
                             tmp_msg = Message()
-                            pkt_len = int.from_bytes(socket.recv(2), "big")
-                            print("SRV_RCV_LEN: ",pkt_len)
+                            #pkt_len = int.from_bytes(socket.recv(2), "big")
+                            #print("SRV_RCV_LEN: ",pkt_len)
                             #if pkt_len > 4096:
                             #    print("Server read overflow")
                             #    break

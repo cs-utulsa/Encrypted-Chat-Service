@@ -52,8 +52,8 @@ class EChatClient():
                 #try:
                 while True:
                     tmp_msg = Message()
-                    pkt_len = int.from_bytes(sock.recv(2), "big")
-                    print("CLI_RCV_LEN: ",pkt_len)
+                    #pkt_len = int.from_bytes(sock.recv(2), "big")
+                    #print("CLI_RCV_LEN: ",pkt_len)
                     #if pkt_len > 4096:
                     #    print("Client read overflow")
                     #    print(sock.recv(2048))
