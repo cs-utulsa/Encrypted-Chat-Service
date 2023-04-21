@@ -55,7 +55,8 @@ class EChatClient():
                     print("PKT_LEN: ",pkt_len)
                     if pkt_len > 4096:
                         print("Client read overflow")
-                        break
+                        print(sock.recv(2048))
+                        exit()
                     edata = sock.recv(pkt_len)
                     data = self.encrypt_pair.decrypt(edata)
                     #print(f'DECRYPT: {data}')

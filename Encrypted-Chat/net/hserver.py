@@ -61,11 +61,10 @@ class EChatServer:
             if socket != self.server and socket != exclusion:
                 em = self.crypt_pair[socket]
                 for msg in message.getData():
-                    print(msg)
-                    print(len(msg))
                     # This is because windows sockets are dumb and dont seperate packets if they arrive too fast
                     # time.sleep(0.0001)
                     data = em.encrypt(msg.encode('utf8'))
+                    print("SRV_SND_LEN: ", len(data))
                     socket.sendall(len(data).to_bytes(2, 'big')+data)
 
     def readAvailable(self):
